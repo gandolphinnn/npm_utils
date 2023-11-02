@@ -34,3 +34,9 @@ export function ArrLast(arr: Array<any>) {
 export function ParentClass(obj: Object) {
 	return Object.getPrototypeOf(obj.constructor);
 }
+export function Plural(val: number, pluralString: string = 's', singularString: string = '') {
+	if (val == 1) {
+		return singularString;
+	}
+	return pluralString;
+}
