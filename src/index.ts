@@ -7,37 +7,39 @@ export class Monad {
 	value: any;
 	history:Array<HistoryLog>;
 	condition: BoolFunction;
-	keepDefaultConditions: boolean;
+	default: any;
 
 	constructor(value: any, history:Array<HistoryLog> = [{value: value, apply: () => value}]) {
 		this.value = value;
 		this.history = history;
 		this.setConditions();
+		this.setDefault();
 	}
-
 	apply(func: Function) {
 		let newVal: any;
 		let log: HistoryLog;
 		try {
 			newVal = func(this.value);
 			if (this.condition(newVal)) {
-				throw new Error('Monad custom condition failed');
+				throw new Error('Monad custom condition failed, set value to default: ' + this.default);
 			}
-			if (this.keepDefaultConditions && (isNaN(newVal) || newVal === null)) {
-				throw new Error('Monad default condition failed');
+			if (isNaN(newVal) || newVal === null) {
+				throw new Error('Monad default condition failed, set value to default: ' + this.default);
 			}
 			log = {value: newVal, apply: func};
 		} catch (error) {
 			log = {value: error, apply: func};
-			newVal = this.value;
+			newVal = this.default === null? this.value : this.default;
 		}
-		return new Monad(newVal, [...this.history, log]).setConditions(this.keepDefaultConditions, this.condition);
+		return new Monad(newVal, [...this.history, log]).setConditions(this.condition).setDefault(this.default);
 	}
-
-	setConditions(keepDefaultConditions: boolean = true, func: BoolFunction = (v: any) => {return false}) {
-		this.keepDefaultConditions = keepDefaultConditions;
+	setConditions(func: BoolFunction = (v: any) => {return false}) {
 		this.condition = func;
-		return this
+		return this;
+	}
+	setDefault(defValue: any = null) {
+		this.default = defValue;
+		return this;
 	}
 }
 export function Rand(min: number, max: number) {
