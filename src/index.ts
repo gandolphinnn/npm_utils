@@ -1,23 +1,23 @@
-export interface KeyValuePair<K, V> {
-    key: K,
-	value: V;
+type BoolFunction = (val: any) => boolean
+type HistoryLog = {
+	value: any,
+	apply: Function
 }
-type BoolFunction = (val) => boolean
 export class Monad {
 	value: any;
-	history:Array<KeyValuePair<Function, any>>;
+	history:Array<HistoryLog>;
 	condition: BoolFunction;
 	keepDefaultConditions: boolean;
 
-	constructor(value: any, history:Array<KeyValuePair<Function, any>> = [{key: () => {'INIT'}, value: value}]) {
+	constructor(value: any, history:Array<HistoryLog> = [{value: value, apply: () => value}]) {
 		this.value = value;
 		this.history = history;
-		this.SetConditions();
+		this.setConditions();
 	}
 
-	Apply(func: Function) {
+	apply(func: Function) {
 		let newVal: any;
-		let kvp: KeyValuePair<Function, any>;
+		let log: HistoryLog;
 		try {
 			newVal = func(this.value);
 			if (this.condition(newVal)) {
@@ -26,15 +26,15 @@ export class Monad {
 			if (this.keepDefaultConditions && (isNaN(newVal) || newVal === null)) {
 				throw new Error('Monad default condition failed');
 			}
-			kvp = {key: func, value: newVal};
+			log = {value: newVal, apply: func};
 		} catch (error) {
-			kvp = {key: func, value: error};
+			log = {value: error, apply: func};
 			newVal = this.value;
 		}
-		return new Monad(newVal, [...this.history, kvp]).SetConditions(this.keepDefaultConditions, this.condition);
+		return new Monad(newVal, [...this.history, log]).setConditions(this.keepDefaultConditions, this.condition);
 	}
 
-	SetConditions(keepDefaultConditions: boolean = true, func: BoolFunction = (v: any) => {return false}) {
+	setConditions(keepDefaultConditions: boolean = true, func: BoolFunction = (v: any) => {return false}) {
 		this.keepDefaultConditions = keepDefaultConditions;
 		this.condition = func;
 		return this
@@ -46,7 +46,7 @@ export function Rand(min: number, max: number) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 export function Rand0(max:number) {
-	return Math.floor(Math.random() * (Math.floor(max) - 1));
+	return Math.floor(Math.random() * (Math.floor(max) + 1));
 }
 export function ArrLast(arr: Array<any>) {
 	return arr[arr.length-1];
