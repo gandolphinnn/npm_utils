@@ -5,20 +5,21 @@ console.log(s.value);
 
 const m = new Monad(12) //12
 	.setCondition((v:number) => v == 12).setDefault(10)
-	.reApply() //Set to 12 againt but with condition
-	.run(new Step((v:number) => v*2, (v:number) => v % 2 == 0)) //24
-	.apply((v:number) => v+2) //26 but failed, so 
+	.reApply() //Set to 12 againt but with condition, that fails, so -> 10
+	.run(new Step((v:number) => v*2, (v:number) => v % 2 == 0)) //20, fails -> 10
+	.setDefault()
+	.apply((v:number) => v+2) //12
 	.apply((v:number) => NaN) //Nan but failed
-	.apply((v:number) => v-4)
-	.reRun(0)
+	.apply((v:number) => v-4) //8
+	.reRun() //4
 	.apply((v:number) => v.toString())
 
 console.table(m.history);
 console.log(m.history.map((h: Step) => h.condition));
 
 // Esempio di utilizzo
-const minRange = -5;
-const maxRange = -1;
+const minRange = 0;
+const maxRange = 0;
 
 console.log(m.history);
 console.table(arrPivot(m.history))

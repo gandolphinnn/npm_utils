@@ -56,7 +56,7 @@ export class Monad {
 		if (stepIndex >= this.history.length)
 			throw new Error('Index out of range');
 
-		return this.run(this.history[overflow(stepIndex, 0, this.history.length)]);
+		return this.run(this.history[overflow(stepIndex, 0, this.history.length-1)]);
 	}
 	apply(func: Function) {
 		return this.run(new Step(func, this.condition, (this.defaultValue == null ? this.value : this.defaultValue)));
@@ -65,7 +65,7 @@ export class Monad {
 		if (stepIndex >= this.history.length)
 			throw new Error('Index out of range');
 
-		return this.apply(this.history[overflow(stepIndex, 0, this.history.length)].func);
+		return this.apply(this.history[overflow(stepIndex, 0, this.history.length-1)].func);
 	}
 	setCondition(func: BoolFunction = (v: any) => {return false}) {
 		this.condition = func;
@@ -79,6 +79,9 @@ export class Monad {
 		this.lockOnFail = lockOnFail;
 		this.locked = this.locked && this.lockOnFail; //? Unlock i f LOE is false
 		return this;
+	}
+	private checkIndexForRepeat(index: number) {
+		
 	}
 }
 //#endregion
