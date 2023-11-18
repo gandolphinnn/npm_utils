@@ -170,6 +170,25 @@ export class Monad {
 }
 //#endregion
 
+//#region Singleton
+/**
+ * Inherit this class to make the child a singleton
+ */
+export class Singleton {
+	private static _instance : Singleton;
+	protected constructor() { }
+	/**
+	 * @returns The instance of the Singleton Object
+	 */
+	static get instance() {
+		if (this._instance == null) {
+			this._instance = new Singleton()
+		}
+		return this._instance;
+	}
+}
+//#endregion
+
 //#region Arrays and Objects
 /**
  * Gets the last element of an array.
