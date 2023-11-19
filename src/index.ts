@@ -26,7 +26,7 @@ export class Step {
 		this.defaultValue = coalesce(this.defaultValue, this.input);
 		try {
 			this.output = this.func(this.input);
-			this.failed = this.condition(this.output) || isnull(this.output);
+			this.failed = this.condition(this.output) || isNull(this.output);
 		} catch (error) {
 			this.output = error;
 			this.failed = true;
@@ -318,23 +318,37 @@ export function overflow(val: number, min: number, max: number) {
 //#region Other
 /**
  * Checks if a value is null or NaN.
- * @param val - The value to be checked.
+ * @param value - The value to be checked.
  * @returns True if the value is null or NaN, otherwise false.
  */
-export function isnull(val: any) {
-	return val === null || Number.isNaN(val);
+export function isNull(value: any) {
+	return value === null || Number.isNaN(value);
+}
+
+/**
+ * Checks if multiple values are null or NaN.
+ * @param values - The list of values.
+ * @returns True is ALL the values are null or NaN, otherwise false.
+ */
+export function areNull(...values: any[]) {
+	for (let i = 0; i < values.length; i++) {
+		if (!isNull(values[i]))
+			return false;
+	}
+	return true;
 }
 
 /**
  * Returns the first non-null and non-NaN value from a list of values.
- * @param data - The list of values.
+ * @param values - The list of values.
  * @returns The first non-null and non-NaN value, or null if all values are null or NaN.
  */
-export function coalesce(...data: any[]) {
-	for (let i = 0; i < data.length; i++) {
-		if (!isnull(data[i]))
-			return data[i];
+export function coalesce(...values: any[]) {
+	for (let i = 0; i < values.length; i++) {
+		if (!isNull(values[i]))
+			return values[i];
 	}
+	return null;
 }
 
 /**
