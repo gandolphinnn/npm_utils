@@ -19,11 +19,27 @@ const m = new Utils.Monad(12) //12
 	.reRun() //4
 	.apply((v:number) => v.toString()).log()
 
-class Test extends Utils.Singleton {
+class Test1 extends Utils.Singleton {
 	private constructor() {
 		super();
 	}
 }
+interface Singleton<T> {
+	get instance(): T;
+  }
+  
+  class Test implements Singleton<Test> {
+	private static _instance: Test;
+  
+	private constructor() {}
+  
+	static get instance(): Test {
+	  if (Utils.isNull(Test._instance)) {
+		Test._instance = new Test();
+	  }
+	  return Test._instance;
+	}
+  }
 const t2 = Test.instance;
 const t1 = Test.instance;
 const t3 = Test.instance;
