@@ -172,20 +172,24 @@ export class Monad {
 
 //#region Singleton
 /**
- * Inherit this class to make the child a singleton
+ * Inherit this class to make the ChildClass a singleton.
+ * @todo Must create a "static get instance() { return this.singletonInstance as ChildClass }"
+ * @todo The ChildClass constructor must be private
  */
 export class Singleton {
-	private static _instance : Singleton;
-	protected constructor() { }
+	private static _instance: Singleton;
 	/**
-	 * @returns The instance of the Singleton Object
+	 * @todo Must create a "static get instance() { return this.singletonInstance as ChildClass }"
 	 */
-	static get instance() {
-		if (this._instance == null) {
-			this._instance = new Singleton()
-		}
+	protected static get singletonInstance(): Singleton {			
+		if (isNull(this._instance))
+			this._instance = new this();
 		return this._instance;
 	}
+	/**
+	 * @todo The ChildClass constructor must be private
+	 */
+	protected constructor() {}
 }
 //#endregion
 
@@ -322,7 +326,7 @@ export function overflow(val: number, min: number, max: number) {
  * @returns True if the value is null or NaN, otherwise false.
  */
 export function isNull(value: any) {
-	return value === null || Number.isNaN(value);
+	return value === null || value === undefined || Number.isNaN(value);
 }
 
 /**

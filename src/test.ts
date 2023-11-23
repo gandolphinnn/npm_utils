@@ -12,37 +12,24 @@ const m = new Utils.Monad(12) //12
 	.setCondition((v:number) => v == 12).setDefault(10)
 	.reApply() //Set to 12 againt but with condition, that fails, so -> 10
 	.run(new Utils.Step((v:number) => v*2, (v:number) => v % 2 == 0)) //20, fails -> 10
-	.setDefault().log()
+	.setCondition().setDefault()
 	.apply((v:number) => v+2) //12
 	.apply((v:number) => NaN) //Nan but failed
 	.apply((v:number) => v-4) //8
 	.reRun() //4
 	.apply((v:number) => v.toString()).log()
-
-class Test1 extends Utils.Singleton {
-	private constructor() {
-		super();
+	  
+	class Test extends Utils.Singleton {
+		static get instance() { return this.singletonInstance as Test }
+		private constructor() {
+			super();
+			this.value = null
+		}
+		value: number;
 	}
-}
-interface Singleton<T> {
-	get instance(): T;
-  }
-  
-  class Test implements Singleton<Test> {
-	private static _instance: Test;
-  
-	private constructor() {}
-  
-	static get instance(): Test {
-	  if (Utils.isNull(Test._instance)) {
-		Test._instance = new Test();
-	  }
-	  return Test._instance;
-	}
-  }
-const t2 = Test.instance;
-const t1 = Test.instance;
-const t3 = Test.instance;
+	const t1 = Test.instance;
+	const t2 = Test.instance;
+	const t3 = Test.instance;
 
 if (t1 === t2 && t2 === t3) {
 	console.log('Singleton works, both variables contain the same instance.');
