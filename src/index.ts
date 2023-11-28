@@ -193,6 +193,136 @@ export class Singleton {
 }
 //#endregion
 
+//#region Singleton
+/**
+ * Inherit this class to make the ChildClass a singleton.
+ * @todo Must create a "static get instance() { return this.singletonInstance as ChildClass }"
+ * @todo The ChildClass constructor must be private
+ */
+export class Node<T> {
+	prev: Node<T> = null;
+	next: Node<T> = null;
+	constructor(public data: T) {}
+}
+export class LinkedList<T> {
+	private _head: Node<T> = null;
+	get head() { return this._head }
+
+	get tail() { return arrLast(this.toArray()) }
+
+	get length(): number {
+		return this.toArray().length;
+	}
+	private pairNodes(prev: Node<T>, next: Node<T>) {
+		prev.next = next;
+		next.prev = prev;
+	}
+
+	toArray() {
+		const array: Node<T>[] = [];
+		if (!this._head) {
+			return array;
+		}
+
+		const addToArray = (node: Node<T>): Node<T>[] => {
+			array.push(node);
+			return node.next ? addToArray(node.next) : array;
+		};
+		return addToArray(this._head);
+	}
+
+	//#region Push
+	pushFirst(data: T) {
+		const node = new Node(data);
+		if (!this._head) {
+			this._head = node;
+		} else {
+			this.pairNodes(node, this._head)
+			this._head = node;
+		}
+		return this.length;
+	}
+	pushAt(index: number, data: T) {
+		if (index == 0) return this.pushFirst(data);
+		if (index == this.length-1) return this.pushLast(data);
+
+		if (index < 0 || index >= this.length) {
+			throw new Error() //todo
+		}
+
+		const node = new Node(data);
+		const prevNode = this.toArray()[index-1];
+		const nextNode = this.toArray()[index];
+		this.pairNodes(prevNode, node);
+		this.pairNodes(node, nextNode);
+		return this.length;
+	}
+	pushLast(data: T) {
+		const node = new Node(data);
+		if (!this._head) {
+			this._head = node;
+		}
+		else {
+			const getLast = (node: Node<T>): Node<T> => {
+				return node.next ? getLast(node.next) : node;
+			};
+
+			const lastNode = getLast(this._head);
+			node.prev = lastNode;
+			lastNode.next = node;
+		}
+		return this.length;
+	}
+	//#endregion
+
+	//#region Pop
+		popFirst() {
+			const head = this.head;
+
+		}
+		popAt(index: number) {
+			if (index == 0) return this.popFirst(data);
+			if (index == this.length-1) return this.popLast(data);
+	
+			if (index < 0 || index >= this.length) {
+				throw new Error() //todo
+			}
+	
+			const node = new Node(data);
+			const prevNode = this.toArray()[index-1];
+			const nextNode = this.toArray()[index];
+			this.pairNodes(prevNode, node);
+			this.pairNodes(node, nextNode);
+		}
+		popLast() {
+			const node = new Node(data);
+			if (!this._head) {
+				this._head = node;
+			}
+			else {
+				const getLast = (node: Node<T>): Node<T> => {
+					return node.next ? getLast(node.next) : node;
+				};
+	
+				const lastNode = getLast(this._head);
+				node.prev = lastNode;
+				lastNode.next = node;
+			}
+		}
+	//#endregion
+
+	search(comparator: (data: T) => boolean): Node<T> | null {
+		const checkNext = (node: Node<T>): Node<T> | null => {
+			if (comparator(node.data)) {
+				return node;
+			}
+			return node.next ? checkNext(node.next) : null;
+		};
+		return this._head ? checkNext(this._head) : null;
+	}
+}
+//#endregion
+
 //#region Arrays and Objects
 /**
  * Gets the last element of an array.
