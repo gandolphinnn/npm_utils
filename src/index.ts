@@ -206,29 +206,32 @@ export class Node<T> {
 }
 export class LinkedList<T> {
 	private _head: Node<T> = null;
+	private _array: Node<T>[];
+
 	get head() { return this._head }
-
-	get tail() { return arrLast(this.toArray()) }
-
-	get length(): number {
-		return this.toArray().length;
+	
+	get tail() { return arrLast(this.array) }
+	
+	get array() {
+		return this._array;
 	}
-	private pairNodes(prev: Node<T>, next: Node<T>) {
-		prev.next = next;
-		next.prev = prev;
-	}
-
-	toArray() {
+	private setArray() {
 		const array: Node<T>[] = [];
-		if (!this._head) {
-			return array;
-		}
-
+		if (!this._head) return array;
+	
 		const addToArray = (node: Node<T>): Node<T>[] => {
 			array.push(node);
 			return node.next ? addToArray(node.next) : array;
 		};
-		return addToArray(this._head);
+		this._array = addToArray(this._head);
+	}
+	get length(): number {
+		return this.array.length;
+	}
+
+	private pairNodes(prev: Node<T>, next: Node<T>) {
+		prev.next = next;
+		next.prev = prev;
 	}
 
 	//#region Push
@@ -240,6 +243,7 @@ export class LinkedList<T> {
 			this.pairNodes(node, this._head)
 			this._head = node;
 		}
+		this.setArray();
 		return this.length;
 	}
 	pushAt(index: number, data: T) {
@@ -251,8 +255,8 @@ export class LinkedList<T> {
 		}
 
 		const node = new Node(data);
-		const prevNode = this.toArray()[index-1];
-		const nextNode = this.toArray()[index];
+		const prevNode = this.array[index-1];
+		const nextNode = this.array[index];
 		this.pairNodes(prevNode, node);
 		this.pairNodes(node, nextNode);
 		return this.length;
@@ -278,24 +282,28 @@ export class LinkedList<T> {
 	//#region Pop
 		popFirst() {
 			const head = this.head;
-
+			if (head) {
+				this._head = head.next
+				if (this.head) {
+					this._head.prev = null;
+				}
+			}
+			return head;
 		}
 		popAt(index: number) {
-			if (index == 0) return this.popFirst(data);
-			if (index == this.length-1) return this.popLast(data);
+			if (index == 0) return this.popFirst();
+			if (index == this.length-1) return this.popLast();
 	
 			if (index < 0 || index >= this.length) {
 				throw new Error() //todo
 			}
-	
-			const node = new Node(data);
-			const prevNode = this.toArray()[index-1];
-			const nextNode = this.toArray()[index];
+			const node = this.array[index];
+			const prevNode = this.array[index-1];
 			this.pairNodes(prevNode, node);
-			this.pairNodes(node, nextNode);
+			//this.pairNodes(node, nextNode);
 		}
 		popLast() {
-			const node = new Node(data);
+			const node = this.tail
 			if (!this._head) {
 				this._head = node;
 			}
@@ -311,6 +319,19 @@ export class LinkedList<T> {
 		}
 	//#endregion
 
+	//#region Get
+	getFirst(){}
+	getAt(){}
+	getLast(){}
+	//#endregion
+
+	//#region Set
+	setFirst(){}
+	setAt(){}
+	setLast(){}
+	//#endregion
+
+	//#region Methods
 	search(comparator: (data: T) => boolean): Node<T> | null {
 		const checkNext = (node: Node<T>): Node<T> | null => {
 			if (comparator(node.data)) {
@@ -320,6 +341,17 @@ export class LinkedList<T> {
 		};
 		return this._head ? checkNext(this._head) : null;
 	}
+	swap(index1, index2) {}
+	reverse() {} //change the list state
+	toReverse() {} //dont change its state but return a reversed copy
+	orderBy(condition: (data: T) => {}) {
+		//todo all this
+		const checkNext = (node: Node<T>) => {
+			condition(node.data)
+		};
+		return this._head ? checkNext(this._head) : null;
+	}
+	//#endregion
 }
 //#endregion
 
@@ -421,7 +453,7 @@ export function rand(min: number, max: number) {
 export function rand0(max: number) {
 	return Math.floor(Math.random() * (Math.floor(max) + 1));
 }
-
+ 
 /**
  * Clamps a value within the specified minimum and maximum range.
  * @param val - The value to be clamped.

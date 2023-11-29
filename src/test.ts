@@ -36,3 +36,6 @@ if (t1 === t2 && t2 === t3) {
 } else {
 	console.log('Singleton failed, variables contain different instances.');
 }
+
+const ll = new Utils.LinkedList<number>
+console.log(ll);
