@@ -1,3 +1,7 @@
+//TODO test isNull, static / dynamic linkedlist with abstract parent, fix the push/pop
+
+
+
 //#region Monad
 /**
  * Represents a step in the Monad execution.
@@ -193,12 +197,7 @@ export class Singleton {
 }
 //#endregion
 
-//#region Singleton
-/**
- * Inherit this class to make the ChildClass a singleton.
- * @todo Must create a "static get instance() { return this.singletonInstance as ChildClass }"
- * @todo The ChildClass constructor must be private
- */
+//#region LinkedList
 export class Node<T> {
 	prev: Node<T> = null;
 	next: Node<T> = null;
@@ -244,6 +243,7 @@ export class LinkedList<T> {
 		return this.length;
 	}
 	pushAt(index: number, data: T) {
+		//todo remove this and do it like get set and pop
 		if (index == 0) return this.pushFirst(data);
 		if (index == this.length) return this.pushLast(data);
 
@@ -280,7 +280,7 @@ export class LinkedList<T> {
 
 	//#region Pop
 		popFirst() {
-			this._head = this.array[1];
+			this._head = this.array[1]; //todo remove this and put it in popAt
 			return this.popAt(0);
 		}
 		popAt(index: number) {
