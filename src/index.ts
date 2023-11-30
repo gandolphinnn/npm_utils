@@ -213,7 +213,7 @@ export class LinkedList<T> {
 	get tail() { return arrLast(this.array) }
 	
 	get array() {
-		return this._array;
+		return isNull(this._array) ? this.setArray() : this._array;
 	}
 	private setArray() {
 		const array: Node<T>[] = [];
@@ -224,34 +224,31 @@ export class LinkedList<T> {
 			return node.next ? addToArray(node.next) : array;
 		};
 		this._array = addToArray(this._head);
+		return this._array;
 	}
 	get length(): number {
 		return this.array.length;
 	}
 
-	private pairNodes(prev: Node<T>, next: Node<T>) {
-		prev.next = next;
-		next.prev = prev;
+	private pairNodes(prev: Node<T> | null, next: Node<T> | null) {
+		if (prev) prev.next = next ;
+		if (next) next.prev = prev;
 	}
 
 	//#region Push
 	pushFirst(data: T) {
 		const node = new Node(data);
-		if (!this._head) {
-			this._head = node;
-		} else {
-			this.pairNodes(node, this._head)
-			this._head = node;
-		}
+		this.pairNodes(node, this._head)
+		this._head = node;
 		this.setArray();
 		return this.length;
 	}
 	pushAt(index: number, data: T) {
 		if (index == 0) return this.pushFirst(data);
-		if (index == this.length-1) return this.pushLast(data);
+		if (index == this.length) return this.pushLast(data);
 
 		if (index < 0 || index >= this.length) {
-			throw new Error() //todo
+			throw new Error('Index out of range')
 		}
 
 		const node = new Node(data);
@@ -259,6 +256,7 @@ export class LinkedList<T> {
 		const nextNode = this.array[index];
 		this.pairNodes(prevNode, node);
 		this.pairNodes(node, nextNode);
+		this.setArray();
 		return this.length;
 	}
 	pushLast(data: T) {
@@ -275,60 +273,37 @@ export class LinkedList<T> {
 			node.prev = lastNode;
 			lastNode.next = node;
 		}
+		this.setArray();
 		return this.length;
 	}
 	//#endregion
 
 	//#region Pop
 		popFirst() {
-			const head = this.head;
-			if (head) {
-				this._head = head.next
-				if (this.head) {
-					this._head.prev = null;
-				}
-			}
-			return head;
+			this._head = this.array[1];
+			return this.popAt(0);
 		}
 		popAt(index: number) {
-			if (index == 0) return this.popFirst();
-			if (index == this.length-1) return this.popLast();
-	
-			if (index < 0 || index >= this.length) {
-				throw new Error() //todo
-			}
+			if (index < 0 || index >= this.length) throw new Error('Index out of range');
+
 			const node = this.array[index];
-			const prevNode = this.array[index-1];
-			this.pairNodes(prevNode, node);
-			//this.pairNodes(node, nextNode);
+			this.pairNodes(node.prev, node.next);
+			this.setArray();
+			return node;
 		}
-		popLast() {
-			const node = this.tail
-			if (!this._head) {
-				this._head = node;
-			}
-			else {
-				const getLast = (node: Node<T>): Node<T> => {
-					return node.next ? getLast(node.next) : node;
-				};
-	
-				const lastNode = getLast(this._head);
-				node.prev = lastNode;
-				lastNode.next = node;
-			}
-		}
+		popLast() { return this.popAt(this.length-1) }
 	//#endregion
 
 	//#region Get
-	getFirst(){}
-	getAt(){}
-	getLast(){}
+	getFirst(){ return this.getAt(0) }
+	getAt(index: number){ return this.array[index].data }
+	getLast(){ return this.getAt(this.length-1) }
 	//#endregion
 
 	//#region Set
-	setFirst(){}
-	setAt(){}
-	setLast(){}
+	setFirst(data: T){ this.setAt(0, data) }
+	setAt(index: number, data: T){ this.array[index].data = data }
+	setLast(data: T){ this.setAt(this.length-1, data) }
 	//#endregion
 
 	//#region Methods
@@ -341,7 +316,9 @@ export class LinkedList<T> {
 		};
 		return this._head ? checkNext(this._head) : null;
 	}
-	swap(index1, index2) {}
+	swap(index1: number, index2: number) {
+
+	}
 	reverse() {} //change the list state
 	toReverse() {} //dont change its state but return a reversed copy
 	orderBy(condition: (data: T) => {}) {

@@ -8,7 +8,7 @@
 		"dist"
 	],
 	"scripts": {
-		"live": "concurrently \"tsc --watch\" \"parcel index.html\"",
+		"live": "concurrently \"tsc --watch\" \"parcel index.html --open\"",
 		"clean": "del /Q /f \"dist\" && tsc && del /Q /f \"dist\\test*\"",
 		"publish": "npm run clean && npm publish"
 	},

@@ -1,5 +1,5 @@
 import * as Utils from "./index.js";
-
+/*
 const newId = new Utils.Monad(document.querySelectorAll('canvas'))
 	.apply((nl: NodeListOf<HTMLCanvasElement>) => Array.from(nl))
 	.apply((arr: Array<HTMLCanvasElement>) => arr.map((cnv) => cnv.id))
@@ -36,6 +36,29 @@ if (t1 === t2 && t2 === t3) {
 } else {
 	console.log('Singleton failed, variables contain different instances.');
 }
+*/
 
 const ll = new Utils.LinkedList<number>
-console.log(ll);
+ll.pushFirst(1)
+ll.pushAt(1, 2)
+ll.pushLast(3)
+console.table(ll.array,['index', 'data']);
+
+ll.pushFirst(10)
+ll.pushAt(2, 20)
+ll.pushLast(30)
+console.table(ll.array,['index', 'data']);
+
+console.log(ll.popFirst())
+console.log(ll.popAt(1))
+console.log(ll.popLast())
+console.table(ll.array,['index', 'data']);
+
+console.log(ll.getFirst())
+console.log(ll.getAt(1))
+console.log(ll.getLast())
+
+ll.setFirst(101)
+ll.setAt(1, 102)
+ll.setLast(103)
+console.table(ll.array,['index', 'data']);
