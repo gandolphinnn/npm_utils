@@ -1,4 +1,4 @@
-//TODO test isNull, static / dynamic linkedlist with abstract parent, fix the push/pop
+//TODO test isNull, fix the push/pop
 
 
 
@@ -203,11 +203,27 @@ export class Node<T> {
 	next: Node<T> = null;
 	constructor(public data: T) {}
 }
-export class LinkedList<T> {
-	private _head: Node<T> = null;
-	private _array: Node<T>[];
-
+export abstract class ILinkedList<T> {
+	protected _head: Node<T> = null;
 	get head() { return this._head }
+	
+	protected pairNodes(prev: Node<T> | null, next: Node<T> | null) {
+		if (prev) prev.next = next ;
+		if (next) next.prev = prev;
+	}
+	protected toArray() {
+		const array: Node<T>[] = [];
+		if (!this._head) return array;
+		
+		const addToArray = (node: Node<T>): Node<T>[] => {
+			array.push(node);
+			return node.next ? addToArray(node.next) : array;
+		};
+		return addToArray(this._head);
+	}
+}
+export class LinkedList<T> extends ILinkedList<T>{
+	private _array: Node<T>[];
 	
 	get tail() { return arrLast(this.array) }
 	
@@ -215,23 +231,11 @@ export class LinkedList<T> {
 		return isNull(this._array) ? this.setArray() : this._array;
 	}
 	private setArray() {
-		const array: Node<T>[] = [];
-		if (!this._head) return array;
-	
-		const addToArray = (node: Node<T>): Node<T>[] => {
-			array.push(node);
-			return node.next ? addToArray(node.next) : array;
-		};
-		this._array = addToArray(this._head);
-		return this._array;
+		this._array = this.toArray();
+		return this._array;	
 	}
 	get length(): number {
 		return this.array.length;
-	}
-
-	private pairNodes(prev: Node<T> | null, next: Node<T> | null) {
-		if (prev) prev.next = next ;
-		if (next) next.prev = prev;
 	}
 
 	//#region Push
@@ -329,6 +333,9 @@ export class LinkedList<T> {
 		return this._head ? checkNext(this._head) : null;
 	}
 	//#endregion
+}
+export class DynamicLinkedList<T> extends ILinkedList<T> {
+
 }
 //#endregion
 
