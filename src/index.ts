@@ -1,7 +1,3 @@
-//TODO test isNull, fix the push/pop
-
-
-
 //#region Monad
 /**
  * Represents a step in the Monad execution.
@@ -221,6 +217,9 @@ export abstract class ILinkedList<T> {
 		};
 		return addToArray(this._head);
 	}
+	test() {
+
+	}
 }
 export class LinkedList<T> extends ILinkedList<T>{
 	private _array: Node<T>[];
@@ -237,25 +236,18 @@ export class LinkedList<T> extends ILinkedList<T>{
 	get length(): number {
 		return this.array.length;
 	}
-
-	//#region Push
-	pushFirst(data: T) {
-		const node = new Node(data);
-		this.pairNodes(node, this._head)
-		this._head = node;
-		this.setArray();
-		return this.length;
+	test() {
+		super.test()
 	}
+	//#region Push
+	pushFirst(data: T) { return this.pushAt(0, data) }
 	pushAt(index: number, data: T) {
-		//todo remove this and do it like get set and pop
-		if (index == 0) return this.pushFirst(data);
-		if (index == this.length) return this.pushLast(data);
-
-		if (index < 0 || index >= this.length) {
-			throw new Error('Index out of range')
-		}
-
+		if (index < 0 || index >= this.length) throw new Error('Index out of range');
+		
 		const node = new Node(data);
+
+		if (index == 0) this._head = node;
+
 		const prevNode = this.array[index-1];
 		const nextNode = this.array[index];
 		this.pairNodes(prevNode, node);
@@ -263,32 +255,15 @@ export class LinkedList<T> extends ILinkedList<T>{
 		this.setArray();
 		return this.length;
 	}
-	pushLast(data: T) {
-		const node = new Node(data);
-		if (!this._head) {
-			this._head = node;
-		}
-		else {
-			const getLast = (node: Node<T>): Node<T> => {
-				return node.next ? getLast(node.next) : node;
-			};
-
-			const lastNode = getLast(this._head);
-			node.prev = lastNode;
-			lastNode.next = node;
-		}
-		this.setArray();
-		return this.length;
-	}
+	pushLast(data: T) {	this.pushAt(this.length-1, data) }
 	//#endregion
 
 	//#region Pop
-		popFirst() {
-			this._head = this.array[1]; //todo remove this and put it in popAt
-			return this.popAt(0);
-		}
+		popFirst() { return this.popAt(0) }
 		popAt(index: number) {
 			if (index < 0 || index >= this.length) throw new Error('Index out of range');
+
+			if (index == 0) this._head = this.array[1];
 
 			const node = this.array[index];
 			this.pairNodes(node.prev, node.next);
