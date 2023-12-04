@@ -199,50 +199,52 @@ export class Node<T> {
 	next: Node<T> = null;
 	constructor(public data: T) {}
 }
-export abstract class ILinkedList<T> {
-	protected _head: Node<T> = null;
+export class StaticList<T> {
+	private _head: Node<T> = null;
 	get head() { return this._head }
 	
-	protected pairNodes(prev: Node<T> | null, next: Node<T> | null) {
+	private _array: Node<T>[];
+	get array() {return isNull(this._array) ? this.setArray() : this._array }
+	set array(arr: Node<T>[]) {
+		this._array = arr;
+		this._head = arr[0];
+	}
+
+	get reversedArray() {
+		const toRet = this.array;
+		toRet.reverse();
+		return toRet;
+	}
+	get arrayData() { return arrPivot(this.array).data	}
+	
+	get length(): number { return this.array.length }
+	
+	get tail() { return arrLast(this.array) }
+
+	constructor(...items: T[]) {
+		items.forEach(item => {
+			const node = new Node(item)
+		});
+	}
+	private pairNodes(prev: Node<T> | null, next: Node<T> | null) {
 		if (prev) prev.next = next ;
 		if (next) next.prev = prev;
 	}
-	protected toArray() {
-		const array: Node<T>[] = [];
-		if (!this._head) return array;
-		
-		const addToArray = (node: Node<T>): Node<T>[] => {
-			array.push(node);
-			return node.next ? addToArray(node.next) : array;
-		};
-		return addToArray(this._head);
-	}
-	test() {
-
-	}
-}
-export class LinkedList<T> extends ILinkedList<T>{
-	private _array: Node<T>[];
-	
-	get tail() { return arrLast(this.array) }
-	
-	get array() {
-		return isNull(this._array) ? this.setArray() : this._array;
-	}
 	private setArray() {
-		this._array = this.toArray();
+		const addToArray = (node: Node<T>) => {
+			this._array.push(node);
+			if (node.next) addToArray(node.next);
+		};
+
+		this._array = [];
+		if (this._head) addToArray(this._head);
+		
 		return this._array;	
-	}
-	get length(): number {
-		return this.array.length;
-	}
-	test() {
-		super.test()
 	}
 	//#region Push
 	pushFirst(data: T) { return this.pushAt(0, data) }
 	pushAt(index: number, data: T) {
-		if (index < 0 || index >= this.length) throw new Error('Index out of range');
+		if (index < 0 || index > this.length) throw new Error('Index out of range');
 		
 		const node = new Node(data);
 
@@ -255,7 +257,7 @@ export class LinkedList<T> extends ILinkedList<T>{
 		this.setArray();
 		return this.length;
 	}
-	pushLast(data: T) {	this.pushAt(this.length-1, data) }
+	pushLast(data: T) {	this.pushAt(this.length, data) }
 	//#endregion
 
 	//#region Pop
@@ -286,21 +288,20 @@ export class LinkedList<T> extends ILinkedList<T>{
 	//#endregion
 
 	//#region Methods
-	search(comparator: (data: T) => boolean): Node<T> | null {
-		const checkNext = (node: Node<T>): Node<T> | null => {
-			if (comparator(node.data)) {
-				return node;
-			}
-			return node.next ? checkNext(node.next) : null;
-		};
-		return this._head ? checkNext(this._head) : null;
-	}
 	swap(index1: number, index2: number) {
-
+		const data1 = this.getAt(index1);
+		const data2 = this.getAt(index2);
+		this.setAt(index1, data2);
+		this.setAt(index2, data1);
 	}
-	reverse() {} //change the list state
-	toReverse() {} //dont change its state but return a reversed copy
-	orderBy(condition: (data: T) => {}) {
+	find(condition: (data: T) => boolean): Node<T>[] {
+		let toRet: Node<T>[] = [];
+		this.array.forEach(node => {
+			if (condition(node.data)) toRet.push(node);
+		});
+		return toRet;
+	}
+	sort(condition: (data: T) => {}) {
 		//todo all this
 		const checkNext = (node: Node<T>) => {
 			condition(node.data)
@@ -308,9 +309,6 @@ export class LinkedList<T> extends ILinkedList<T>{
 		return this._head ? checkNext(this._head) : null;
 	}
 	//#endregion
-}
-export class DynamicLinkedList<T> extends ILinkedList<T> {
-
 }
 //#endregion
 
@@ -442,9 +440,10 @@ export function overflow(val: number, min: number, max: number) {
 
 //#region Other
 /**
- * Checks if a value is null or NaN.
+ * Checks if a value is null, undefined or NaN.
+ * Useful if the value can be 0 or false, because it will still return true
  * @param value - The value to be checked.
- * @returns True if the value is null or NaN, otherwise false.
+ * @returns True if the value is null, undefined or NaN, otherwise false.
  */
 export function isNull(value: any) {
 	return value === null || value === undefined || Number.isNaN(value);
