@@ -203,34 +203,41 @@ export class StaticList<T> {
 	private _head: Node<T> = null;
 	get head() { return this._head }
 	
+	//#region array
 	private _array: Node<T>[];
-	get array() {return isNull(this._array) ? this.setArray() : this._array }
+	get array() {return isNull(this._array) ? this.buildArray() : this._array }
 	set array(arr: Node<T>[]) {
-		this._array = arr;
-		this._head = arr[0];
+		this._array = [...arr];
+		for (let i = 0; i < arr.length; i++) {
+			this.pairNodes(coalesce(this._array[i-1]), this._array[i])
+		}
+		if (!isNull(arrLast(this._array))) arrLast(this._array).next = null;
+		this._head = coalesce(arr[0]);
 	}
+	//#endregion
 
-	get reversedArray() {
-		const toRet = this.array;
-		toRet.reverse();
-		return toRet;
+	//#region data
+	get data() { return coalesce(arrPivot(this.array).data) }
+	set data(data: T[]) {
+		const newArr: Node<T>[] = [];
+		data.forEach(item => {
+			newArr.push(new Node(item));
+		});
+		this.array = newArr;
 	}
-	get arrayData() { return arrPivot(this.array).data	}
+	//#endregion
 	
-	get length(): number { return this.array.length }
-	
-	get tail() { return arrLast(this.array) }
+	get length() { return this.array.length }	
+	get tail() { return coalesce(arrLast(this.array)) }
 
 	constructor(...items: T[]) {
-		items.forEach(item => {
-			const node = new Node(item)
-		});
+		this.data = items;
 	}
 	private pairNodes(prev: Node<T> | null, next: Node<T> | null) {
 		if (prev) prev.next = next ;
 		if (next) next.prev = prev;
 	}
-	private setArray() {
+	private buildArray() {
 		const addToArray = (node: Node<T>) => {
 			this._array.push(node);
 			if (node.next) addToArray(node.next);
@@ -254,59 +261,83 @@ export class StaticList<T> {
 		const nextNode = this.array[index];
 		this.pairNodes(prevNode, node);
 		this.pairNodes(node, nextNode);
-		this.setArray();
+		this.buildArray();
 		return this.length;
 	}
 	pushLast(data: T) {	this.pushAt(this.length, data) }
 	//#endregion
 
 	//#region Pop
-		popFirst() { return this.popAt(0) }
-		popAt(index: number) {
-			if (index < 0 || index >= this.length) throw new Error('Index out of range');
+	popFirst() { return this.popAt(0) }
+	popAt(index: number) {
+		if (index < 0 || index >= this.length) throw new Error('Index out of range');
 
-			if (index == 0) this._head = this.array[1];
+		if (index == 0) this._head = this.array[1];
 
-			const node = this.array[index];
-			this.pairNodes(node.prev, node.next);
-			this.setArray();
-			return node;
-		}
-		popLast() { return this.popAt(this.length-1) }
+		const node = this.array[index];
+		this.pairNodes(node.prev, node.next);
+		this.buildArray();
+		return node;
+	}
+	popLast() { return this.popAt(this.length-1) }
 	//#endregion
 
 	//#region Get
 	getFirst(){ return this.getAt(0) }
-	getAt(index: number){ return this.array[index].data }
+	getAt(index: number){
+		if (index < 0 || index >= this.length) throw new Error('Index out of range');
+		return this.array[index].data;
+	}
 	getLast(){ return this.getAt(this.length-1) }
 	//#endregion
 
 	//#region Set
 	setFirst(data: T){ this.setAt(0, data) }
-	setAt(index: number, data: T){ this.array[index].data = data }
+	setAt(index: number, data: T){
+		if (index < 0 || index >= this.length) throw new Error('Index out of range');
+		this.array[index].data = data;
+	}
 	setLast(data: T){ this.setAt(this.length-1, data) }
 	//#endregion
 
 	//#region Methods
-	swap(index1: number, index2: number) {
-		const data1 = this.getAt(index1);
-		const data2 = this.getAt(index2);
-		this.setAt(index1, data2);
-		this.setAt(index2, data1);
-	}
-	find(condition: (data: T) => boolean): Node<T>[] {
+	find(condition: (data: T) => boolean): Node<T>[] { //? doesn't change the list
 		let toRet: Node<T>[] = [];
 		this.array.forEach(node => {
 			if (condition(node.data)) toRet.push(node);
 		});
 		return toRet;
 	}
-	sort(condition: (data: T) => {}) {
-		//todo all this
-		const checkNext = (node: Node<T>) => {
-			condition(node.data)
-		};
-		return this._head ? checkNext(this._head) : null;
+	swap(index1: number, index2: number) {
+		const data1 = this.getAt(index1);
+		const data2 = this.getAt(index2);
+		this.setAt(index1, data2);
+		this.setAt(index2, data1);
+		return this.data;
+	}
+	sortKey(key?: keyof T) {
+		const sorted = this.data;
+		sorted.sort()
+		this.data = sorted;
+		return this.data;
+	}
+	sortCondition(condition: (data: T) => boolean) {
+		const passed: Node<T>[] = [];
+		const failed: Node<T>[] = [];
+		this.array.forEach(node => {
+			if (condition(node.data))
+				passed.push(node);
+			else
+				failed.push(node);
+		});
+		this.array = [...passed, ...failed]
+		return this.data;
+	}
+	reverse() {
+		const toRet = this.array;
+		toRet.reverse();
+		this.array = toRet;
+		return this.array;
 	}
 	//#endregion
 }
@@ -496,5 +527,13 @@ export function plural(val: number, pluralString: string = 's', singularString: 
 		return singularString;
 	}
 	return pluralString;
+}
+export function test(operationName: string, value: any, expected: any) {
+	if (value == expected) {
+		console.log(operationName, 'passed: ', value, expected);
+	}
+	else {
+		console.warn(operationName, 'failed: ', value, expected)
+	}
 }
 //#endregion

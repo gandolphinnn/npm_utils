@@ -33,36 +33,42 @@ import * as I from "./index.js";
 	ll.pushFirst(1)
 	ll.pushAt(1, 2)
 	ll.pushLast(3)
-	console.log(ll.arrayData) //[1,2,3]
+	I.test('push', ll.data, [1,2,3])
 
 	ll.pushFirst(10)
 	ll.pushAt(2, 20)
 	ll.pushLast(30)
-	console.log(ll.arrayData) //[10,1,20,2,3,30]
+	I.test('push', ll.data, [10,1,20,2,3,30])
 	
 	//* pop
-	console.log(ll.popFirst())
-	console.log(ll.popAt(1))
-	console.log(ll.popLast())
-	console.log(ll.arrayData) //[1,2,3]
+	ll.popFirst();
+	ll.popAt(1);
+	ll.popLast();
+	I.test('pop', ll.data, [1,2,3])
 
 	//* get
-	console.log(ll.getFirst(), ll.getAt(1), ll.getLast()) //1 2 3
+	I.test('get', [ll.getFirst(), ll.getAt(1), ll.getLast()], [1,2,3])
 
 	//* set
 	ll.setFirst(101)
 	ll.setAt(1, 102)
 	ll.setLast(103)
-	console.log(ll.arrayData) //[101,102,103]
+	I.test('set', ll.data, [101,102,103])
 	
-	ll.swap(0,2);
-	console.log(ll.arrayData) //[103,102,101]
-	
-	console.log(ll.arrayData) //[103,102,101]
-
 	const searchRes = ll.find((n: number) => n < 103)
-	console.log(I.arrPivot(searchRes).data); // [102,101]
+	I.test('find',I.arrPivot(searchRes).data, [101,102]);
 
-	const reversed = ll.toReverse()
-	console.log(I.arrPivot(reversed).data); // [102,101]
+	ll.swap(0,2);
+	I.test('swap', ll.data, [103,102,101]);
+
+	ll.reverse();
+	I.test('reverse', ll.data, [101,102,103]);
+	
+	ll.sortCondition((n: number) => n % 2 == 0)
+	I.test('sortCondition', ll.data, [102,101,103])
+	
+	ll.sortKey()
+	I.test('sortKey', ll.data, [101,102,103])
+
+
 	//#endregion
