@@ -172,20 +172,288 @@ export class Monad {
 
 //#region Singleton
 /**
- * Inherit this class to make the child a singleton
+ * Inherit this class to make the ChildClass a singleton.
+ * @todo Must create a "static get instance() { return this.singletonInstance as ChildClass }"
+ * @todo The ChildClass constructor must be private
  */
 export class Singleton {
-	private static _instance : Singleton;
-	protected constructor() { }
+	private static _instance: Singleton;
 	/**
-	 * @returns The instance of the Singleton Object
+	 * @todo Must create a "static get instance() { return this.singletonInstance as ChildClass }"
 	 */
-	static get instance() {
-		if (this._instance == null) {
-			this._instance = new Singleton()
-		}
+	protected static get singletonInstance(): Singleton {			
+		if (isNull(this._instance))
+			this._instance = new this();
 		return this._instance;
 	}
+	/**
+	 * @todo The ChildClass constructor must be private
+	 */
+	protected constructor() {}
+}
+//#endregion
+
+//#region LinkedList
+export class Node<T> {
+	prev: Node<T> = null;
+	next: Node<T> = null;
+	constructor(public data: T) {}
+}
+export class StaticList<T> {
+	private _head: Node<T> = null;
+	get head() { return this._head }
+
+	//#region array
+	private _array: Node<T>[];
+	get array() {return isNull(this._array) ? this.buildArray() : this._array }
+	set array(arr: Node<T>[]) {
+		this._array = [...arr];
+		for (let i = 0; i < arr.length; i++) {
+			this.pairNodes(coalesce(this._array[i-1]), this._array[i])
+		}
+		if (!isNull(arrLast(this._array))) arrLast(this._array).next = null;
+		this._head = coalesce(arr[0]);
+	}
+	//#endregion
+
+	//#region data
+	get data() { return coalesce(arrPivot(this.array).data) }
+	set data(data: T[]) {
+		const newArr: Node<T>[] = [];
+		data.forEach(item => {
+			newArr.push(new Node(item));
+		});
+		this.array = newArr;
+	}
+	//#endregion
+	
+	get length() { return this.array.length }
+	get tail() { return coalesce(arrLast(this.array)) }
+
+	/**
+	 * Constructs a StaticList with the specified items.
+	 * @param items - The initial items for the list.
+	 */
+	constructor(...items: T[]) {
+		this.data = items;
+	}
+	private pairNodes(prev: Node<T> | null, next: Node<T> | null) {
+		if (prev) prev.next = next ;
+		if (next) next.prev = prev;
+	}
+	private buildArray() {
+		const addToArray = (node: Node<T>) => {
+			this._array.push(node);
+			if (node.next) addToArray(node.next);
+		};
+
+		this._array = [];
+		if (this._head) addToArray(this._head);
+
+		return this._array;
+	}
+	//#region Push
+	/**
+	 * Adds an item to the beginning of the list.
+	 * @param data - The data to be added.
+	 * @returns The new length of the list.
+	 */
+	pushFirst(data: T) { return this.pushAt(0, data) }
+
+	/**
+	 * Adds an item at the specified index in the list.
+	 * @param index - The index at which the data should be added.
+	 * @param data - The data to be added.
+	 * @returns The new length of the list.
+	 * @throws Throws an error if the index is out of range.
+	 */
+	pushAt(index: number, data: T) {
+		if (index < 0 || index > this.length) throw new Error('Index out of range');
+
+		const node = new Node(data);
+
+		if (index == 0) this._head = node;
+
+		const prevNode = this.array[index-1];
+		const nextNode = this.array[index];
+		this.pairNodes(prevNode, node);
+		this.pairNodes(node, nextNode);
+		this.buildArray();
+		return this.length;
+	}
+
+	/**
+	 * Adds an item to the end of the list.
+	 * @param data - The data to be added.
+	 */
+	pushLast(data: T) {	this.pushAt(this.length, data) }
+	//#endregion
+
+	//#region Pop
+	/**
+	 * Removes the first item from the list.
+	 * @returns The removed node.
+	 */
+	popFirst() { return this.popAt(0) }
+
+	/**
+	 * Removes the item at the specified index from the list.
+	 * @param index - The index of the item to be removed.
+	 * @returns The removed node.
+	 * @throws Throws an error if the index is out of range.
+	 */
+	popAt(index: number) {
+		if (index < 0 || index >= this.length) throw new Error('Index out of range');
+
+		if (index == 0) this._head = this.array[1];
+
+		const node = this.array[index];
+		this.pairNodes(node.prev, node.next);
+		this.buildArray();
+		return node;
+	}
+
+	/**
+	 * Removes the last item from the list.
+	 * @returns The removed node.
+	 */
+	popLast() { return this.popAt(this.length-1) }
+	//#endregion
+
+	//#region Get
+	/**
+	 * Returns the data of the first node in the list.
+	 */
+	getFirst(){ return this.getAt(0) }
+
+	/**
+	 * Returns the data at the specified index in the list.
+	 * @param index - The index of the desired data.
+	 * @throws Throws an error if the index is out of range.
+	 */
+	getAt(index: number){
+		if (index < 0 || index >= this.length) throw new Error('Index out of range');
+		return this.array[index].data;
+	}
+
+	/**
+	 * Returns the data of the last node in the list.
+	 */
+	getLast(){ return this.getAt(this.length-1) }
+	//#endregion
+
+	//#region Set
+	/**
+	 * Sets the data of the first node in the list.
+	 * @param data - The new data value.
+	 */
+	setFirst(data: T){ this.setAt(0, data) }
+
+	/**
+	 * Sets the data at the specified index in the list.
+	 * @param index - The index at which to set the data.
+	 * @param data - The new data value.
+	 * @throws Throws an error if the index is out of range.
+	 */
+	setAt(index: number, data: T){
+		if (index < 0 || index >= this.length) throw new Error('Index out of range');
+		this.array[index].data = data;
+	}
+
+	/**
+	 * Sets the data of the last node in the list.
+	 * @param data - The new data value.
+	 */
+	setLast(data: T){ this.setAt(this.length-1, data) }
+	//#endregion
+
+	//#region Methods
+	/**
+	 * Finds nodes in the list based on a condition.
+	 * @param condition - The condition to match.
+	 * @returns An array of nodes that satisfy the condition.
+	 */
+	find(condition: (data: T) => boolean): Node<T>[] {
+		let toRet: Node<T>[] = [];
+		this.array.forEach(node => {
+			if (condition(node.data)) toRet.push(node);
+		});
+		return toRet;
+	}
+
+	/**
+	 * Swaps the positions of two nodes in the list.
+	 * @param index1 - The index of the first node.
+	 * @param index2 - The index of the second node.
+	 * @returns The updated data array.
+	 */
+	swap(index1: number, index2: number) {
+		const data1 = this.getAt(index1);
+		const data2 = this.getAt(index2);
+		this.setAt(index1, data2);
+		this.setAt(index2, data1);
+		return this.data;
+	}
+
+	/**
+	 * Sorts the list based on a specified key.
+	 * @param key - The key to use for sorting.
+	 * @param reverse - Indicates whether to sort in reverse order.
+	 * @returns The updated data array.
+	 */
+	sortKey(key?: keyof T, reverse = false) {
+		let sorted: T[];
+		if (!key) {
+			sorted = this.data.sort();
+		}
+		else {
+			sorted = this.data.sort((a, b) => {			
+				const valueA = a[key];
+				const valueB = b[key];
+
+				// Customize the sorting logic based on the key
+				if (valueA < valueB)		return -1;
+				else if (valueA > valueB)	return 1;
+				else						return 0;
+			});
+		}
+		if (reverse) sorted.reverse();
+		this.data = sorted;
+		return this.data;
+	}
+
+	/**
+	 * Sorts the list based on a specified condition.
+	 * @param condition - The condition to use for sorting.
+	 * @param reverse - Indicates whether to sort in reverse order.
+	 * @returns The updated data array.
+	 */
+	sortCondition(condition: (data: T) => boolean, reverse = false) {
+		const passed: Node<T>[] = [];
+		const failed: Node<T>[] = [];
+		this.array.forEach(node => {
+			if (condition(node.data))
+				passed.push(node);
+			else
+				failed.push(node);
+		});
+		const sorted = [...passed, ...failed]
+		if (reverse) sorted.reverse();
+		this.array = sorted;
+		return this.data;
+	}
+
+	/**
+	 * Reverses the order of nodes in the list.
+	 * @returns The updated data array.
+	 */
+	reverse() {
+		const toRet = this.array;
+		toRet.reverse();
+		this.array = toRet;
+		return this.data;
+	}
+	//#endregion
 }
 //#endregion
 
@@ -287,7 +555,7 @@ export function rand(min: number, max: number) {
 export function rand0(max: number) {
 	return Math.floor(Math.random() * (Math.floor(max) + 1));
 }
-
+ 
 /**
  * Clamps a value within the specified minimum and maximum range.
  * @param val - The value to be clamped.
@@ -317,12 +585,13 @@ export function overflow(val: number, min: number, max: number) {
 
 //#region Other
 /**
- * Checks if a value is null or NaN.
+ * Checks if a value is null, undefined or NaN.
+ * Useful if the value can be 0 or false, because it will still return true
  * @param value - The value to be checked.
- * @returns True if the value is null or NaN, otherwise false.
+ * @returns True if the value is null, undefined or NaN, otherwise false.
  */
 export function isNull(value: any) {
-	return value === null || Number.isNaN(value);
+	return value === null || value === undefined || Number.isNaN(value);
 }
 
 /**
@@ -372,5 +641,15 @@ export function plural(val: number, pluralString: string = 's', singularString: 
 		return singularString;
 	}
 	return pluralString;
+}
+export function test(operationName: string, value: any, expected: any) {
+	const valStr = JSON.stringify(value);
+	const excpStr = JSON.stringify(expected)
+	if (valStr == excpStr) {
+		console.log(operationName, 'passed: ', valStr);
+	}
+	else {
+		console.warn(operationName, 'failed: VALUE=', valStr, ' EXCPECTED=', excpStr)
+	}
 }
 //#endregion
