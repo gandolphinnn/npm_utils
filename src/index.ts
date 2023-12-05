@@ -202,7 +202,7 @@ export class Node<T> {
 export class StaticList<T> {
 	private _head: Node<T> = null;
 	get head() { return this._head }
-	
+
 	//#region array
 	private _array: Node<T>[];
 	get array() {return isNull(this._array) ? this.buildArray() : this._array }
@@ -227,9 +227,13 @@ export class StaticList<T> {
 	}
 	//#endregion
 	
-	get length() { return this.array.length }	
+	get length() { return this.array.length }
 	get tail() { return coalesce(arrLast(this.array)) }
 
+	/**
+	 * Constructs a StaticList with the specified items.
+	 * @param items - The initial items for the list.
+	 */
 	constructor(...items: T[]) {
 		this.data = items;
 	}
@@ -245,14 +249,27 @@ export class StaticList<T> {
 
 		this._array = [];
 		if (this._head) addToArray(this._head);
-		
-		return this._array;	
+
+		return this._array;
 	}
 	//#region Push
+	/**
+	 * Adds an item to the beginning of the list.
+	 * @param data - The data to be added.
+	 * @returns The new length of the list.
+	 */
 	pushFirst(data: T) { return this.pushAt(0, data) }
+
+	/**
+	 * Adds an item at the specified index in the list.
+	 * @param index - The index at which the data should be added.
+	 * @param data - The data to be added.
+	 * @returns The new length of the list.
+	 * @throws Throws an error if the index is out of range.
+	 */
 	pushAt(index: number, data: T) {
 		if (index < 0 || index > this.length) throw new Error('Index out of range');
-		
+
 		const node = new Node(data);
 
 		if (index == 0) this._head = node;
@@ -264,11 +281,27 @@ export class StaticList<T> {
 		this.buildArray();
 		return this.length;
 	}
+
+	/**
+	 * Adds an item to the end of the list.
+	 * @param data - The data to be added.
+	 */
 	pushLast(data: T) {	this.pushAt(this.length, data) }
 	//#endregion
 
 	//#region Pop
+	/**
+	 * Removes the first item from the list.
+	 * @returns The removed node.
+	 */
 	popFirst() { return this.popAt(0) }
+
+	/**
+	 * Removes the item at the specified index from the list.
+	 * @param index - The index of the item to be removed.
+	 * @returns The removed node.
+	 * @throws Throws an error if the index is out of range.
+	 */
 	popAt(index: number) {
 		if (index < 0 || index >= this.length) throw new Error('Index out of range');
 
@@ -279,35 +312,81 @@ export class StaticList<T> {
 		this.buildArray();
 		return node;
 	}
+
+	/**
+	 * Removes the last item from the list.
+	 * @returns The removed node.
+	 */
 	popLast() { return this.popAt(this.length-1) }
 	//#endregion
 
 	//#region Get
+	/**
+	 * Returns the data of the first node in the list.
+	 */
 	getFirst(){ return this.getAt(0) }
+
+	/**
+	 * Returns the data at the specified index in the list.
+	 * @param index - The index of the desired data.
+	 * @throws Throws an error if the index is out of range.
+	 */
 	getAt(index: number){
 		if (index < 0 || index >= this.length) throw new Error('Index out of range');
 		return this.array[index].data;
 	}
+
+	/**
+	 * Returns the data of the last node in the list.
+	 */
 	getLast(){ return this.getAt(this.length-1) }
 	//#endregion
 
 	//#region Set
+	/**
+	 * Sets the data of the first node in the list.
+	 * @param data - The new data value.
+	 */
 	setFirst(data: T){ this.setAt(0, data) }
+
+	/**
+	 * Sets the data at the specified index in the list.
+	 * @param index - The index at which to set the data.
+	 * @param data - The new data value.
+	 * @throws Throws an error if the index is out of range.
+	 */
 	setAt(index: number, data: T){
 		if (index < 0 || index >= this.length) throw new Error('Index out of range');
 		this.array[index].data = data;
 	}
+
+	/**
+	 * Sets the data of the last node in the list.
+	 * @param data - The new data value.
+	 */
 	setLast(data: T){ this.setAt(this.length-1, data) }
 	//#endregion
 
 	//#region Methods
-	find(condition: (data: T) => boolean): Node<T>[] { //? doesn't change the list and return Node<T>[], instead of T[]
+	/**
+	 * Finds nodes in the list based on a condition.
+	 * @param condition - The condition to match.
+	 * @returns An array of nodes that satisfy the condition.
+	 */
+	find(condition: (data: T) => boolean): Node<T>[] {
 		let toRet: Node<T>[] = [];
 		this.array.forEach(node => {
 			if (condition(node.data)) toRet.push(node);
 		});
 		return toRet;
 	}
+
+	/**
+	 * Swaps the positions of two nodes in the list.
+	 * @param index1 - The index of the first node.
+	 * @param index2 - The index of the second node.
+	 * @returns The updated data array.
+	 */
 	swap(index1: number, index2: number) {
 		const data1 = this.getAt(index1);
 		const data2 = this.getAt(index2);
@@ -315,32 +394,40 @@ export class StaticList<T> {
 		this.setAt(index2, data1);
 		return this.data;
 	}
+
+	/**
+	 * Sorts the list based on a specified key.
+	 * @param key - The key to use for sorting.
+	 * @param reverse - Indicates whether to sort in reverse order.
+	 * @returns The updated data array.
+	 */
 	sortKey(key?: keyof T, reverse = false) {
 		let sorted: T[];
 		if (!key) {
 			sorted = this.data.sort();
 		}
 		else {
-			sorted = this.data.sort((a, b) => {
-				if (a.hasOwnProperty(key) && b.hasOwnProperty(key)) {
-					const valueA = a[key];
-					const valueB = b[key];
-			
-					// Puoi personalizzare il modo in cui vuoi ordinare gli elementi in base alla chiave
-					if (valueA < valueB) 		return -1;
-					else if (valueA > valueB)	return 1;
-					else						return 0;
-				}
-				else {
-					// Se la chiave non è presente in uno degli oggetti, restituisci 0 (nessun cambiamento nell'ordine)
-					return 0;
-				}
+			sorted = this.data.sort((a, b) => {			
+				const valueA = a[key];
+				const valueB = b[key];
+
+				// Customize the sorting logic based on the key
+				if (valueA < valueB)		return -1;
+				else if (valueA > valueB)	return 1;
+				else						return 0;
 			});
 		}
 		if (reverse) sorted.reverse();
 		this.data = sorted;
 		return this.data;
 	}
+
+	/**
+	 * Sorts the list based on a specified condition.
+	 * @param condition - The condition to use for sorting.
+	 * @param reverse - Indicates whether to sort in reverse order.
+	 * @returns The updated data array.
+	 */
 	sortCondition(condition: (data: T) => boolean, reverse = false) {
 		const passed: Node<T>[] = [];
 		const failed: Node<T>[] = [];
@@ -355,6 +442,11 @@ export class StaticList<T> {
 		this.array = sorted;
 		return this.data;
 	}
+
+	/**
+	 * Reverses the order of nodes in the list.
+	 * @returns The updated data array.
+	 */
 	reverse() {
 		const toRet = this.array;
 		toRet.reverse();
