@@ -301,7 +301,7 @@ export class StaticList<T> {
 	//#endregion
 
 	//#region Methods
-	find(condition: (data: T) => boolean): Node<T>[] { //? doesn't change the list
+	find(condition: (data: T) => boolean): Node<T>[] { //? doesn't change the list and return Node<T>[], instead of T[]
 		let toRet: Node<T>[] = [];
 		this.array.forEach(node => {
 			if (condition(node.data)) toRet.push(node);
@@ -315,13 +315,33 @@ export class StaticList<T> {
 		this.setAt(index2, data1);
 		return this.data;
 	}
-	sortKey(key?: keyof T) {
-		const sorted = this.data;
-		sorted.sort()
+	sortKey(key?: keyof T, reverse = false) {
+		let sorted: T[];
+		if (!key) {
+			sorted = this.data.sort();
+		}
+		else {
+			sorted = this.data.sort((a, b) => {
+				if (a.hasOwnProperty(key) && b.hasOwnProperty(key)) {
+					const valueA = a[key];
+					const valueB = b[key];
+			
+					// Puoi personalizzare il modo in cui vuoi ordinare gli elementi in base alla chiave
+					if (valueA < valueB) 		return -1;
+					else if (valueA > valueB)	return 1;
+					else						return 0;
+				}
+				else {
+					// Se la chiave non è presente in uno degli oggetti, restituisci 0 (nessun cambiamento nell'ordine)
+					return 0;
+				}
+			});
+		}
+		if (reverse) sorted.reverse();
 		this.data = sorted;
 		return this.data;
 	}
-	sortCondition(condition: (data: T) => boolean) {
+	sortCondition(condition: (data: T) => boolean, reverse = false) {
 		const passed: Node<T>[] = [];
 		const failed: Node<T>[] = [];
 		this.array.forEach(node => {
@@ -330,14 +350,16 @@ export class StaticList<T> {
 			else
 				failed.push(node);
 		});
-		this.array = [...passed, ...failed]
+		const sorted = [...passed, ...failed]
+		if (reverse) sorted.reverse();
+		this.array = sorted;
 		return this.data;
 	}
 	reverse() {
 		const toRet = this.array;
 		toRet.reverse();
 		this.array = toRet;
-		return this.array;
+		return this.data;
 	}
 	//#endregion
 }
@@ -529,11 +551,13 @@ export function plural(val: number, pluralString: string = 's', singularString: 
 	return pluralString;
 }
 export function test(operationName: string, value: any, expected: any) {
-	if (value == expected) {
-		console.log(operationName, 'passed: ', value, expected);
+	const valStr = JSON.stringify(value);
+	const excpStr = JSON.stringify(expected)
+	if (valStr == excpStr) {
+		console.log(operationName, 'passed: ', valStr);
 	}
 	else {
-		console.warn(operationName, 'failed: ', value, expected)
+		console.warn(operationName, 'failed: VALUE=', valStr, ' EXCPECTED=', excpStr)
 	}
 }
 //#endregion
