@@ -193,6 +193,10 @@ export class Singleton {
 }
 //#endregion
 
+//#region Dictionary
+export type Dictionary<KT extends string | number, KV> = { [key in KT]: KV };
+//#endregion
+
 //#region LinkedList
 export class Node<T> {
 	prev: Node<T> = null;
@@ -581,6 +585,19 @@ export function overflow(val: number, min: number, max: number) {
 	const range = max - min + 1;
 	return (val % range + range) % range + min;
 }
+
+/**
+ * Applies overflow to a value within a specified range.
+ * @param val - The value to be overflowed.
+ * @returns The overflowed value within the range [min, max] (inclusive). Loops under and over the range.
+ */
+export function decToHex(dec: number) {
+	return dec.toString(16);
+}
+
+export function hexToDec(hex: string) {
+	return parseInt(hex, 16);
+}
 //#endregion
 
 //#region Other
@@ -646,10 +663,10 @@ export function test(operationName: string, value: any, expected: any) {
 	const valStr = JSON.stringify(value);
 	const excpStr = JSON.stringify(expected)
 	if (valStr == excpStr) {
-		console.log(operationName, 'passed: ', valStr);
+		console.log('%cTest ' + operationName + ' passed: ' + valStr, 'color: #0c0');
 	}
 	else {
-		console.warn(operationName, 'failed: VALUE=', valStr, ' EXCPECTED=', excpStr)
+		console.log('%cTest ' + operationName + ' failed: VALUE=' + valStr + ' EXCPECTED=' + excpStr, 'color: #f00')
 	}
 }
 //#endregion
