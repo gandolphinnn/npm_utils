@@ -1,3 +1,5 @@
+import Enumerable from "linq";
+
 //#region Monad
 /**
  * Represents a step in the Monad execution.
@@ -336,46 +338,9 @@ export class StaticList<T> { //TODO update comments of every method
 	 * @param reverse - Indicates whether to sort in reverse order.
 	 * @returns The updated data array.
 	 */
-	sortKey(key?: keyof T, reverse = false) {
-		let sorted: T[];
-		if (!key) {
-			sorted = this._items.sort();
-		}
-		else {
-			sorted = this._items.sort((a, b) => {			
-				const valueA = a[key];
-				const valueB = b[key];
-
-				// Customize the sorting logic based on the key
-				if (valueA < valueB)		return -1;
-				else if (valueA > valueB)	return 1;
-				else						return 0;
-			});
-		}
-		if (reverse) sorted.reverse();
-		this._items = sorted;
-		return this._items;
-	}
-
-	/**
-	 * Sorts the list based on a specified condition.
-	 * @param condition - The condition to use for sorting.
-	 * @param reverse - Indicates whether to sort in reverse order.
-	 * @returns The updated data array.
-	 */
-	sortCondition(condition: (data: T) => boolean, reverse = false) {
-		const passed: T[] = [];
-		const failed: T[] = [];
-		this._items.forEach(item => {
-			if (condition(item))
-				passed.push(item);
-			else
-				failed.push(item);
-		});
-		const sorted = [...passed, ...failed]
-		if (reverse) sorted.reverse();
-		this._items = sorted;
-		return this._items;
+	
+	linq(linqQuery: (linq: Enumerable.IEnumerable<T>) => Enumerable.IEnumerable<T>) {
+		this._items = linqQuery(Enumerable.from(this._items)).toArray();
 	}
 
 	/**
@@ -383,9 +348,7 @@ export class StaticList<T> { //TODO update comments of every method
 	 * @returns The updated data array.
 	 */
 	reverse() {
-		const toRet = this._items;
-		toRet.reverse();
-		this._items = toRet;
+		this._items.reverse();
 		return this._items;
 	}
 	//#endregion

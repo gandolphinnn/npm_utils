@@ -1,4 +1,10 @@
+import Enumerable from "linq";
 import * as I from "./index.js";
+
+const linq = Enumerable.from([1,3,2,4])
+console.log(linq.orderBy(w => w).toArray());
+console.log(linq.toArray());
+
 
 //#region Monad
 	const m = new I.Monad(12) //12
@@ -64,15 +70,22 @@ import * as I from "./index.js";
 	ll.reverse();
 	I.test('reverse', ll.items, [101,102,103]);
 	
-	ll.sortCondition((n: number) => n % 2 == 0)
+	ll.linq((linq) => {
+		return linq.orderBy(w => w != 102)
+	})
 	I.test('sortCondition', ll.items, [102,101,103]);
 	
-	ll.sortKey()
+	ll.linq((linq) => {
+		return linq.orderBy(w => w)
+	})
 	I.test('sortKey_simple', ll.items, [101,102,103])
 	
-	const llObj = new I.StaticList<{age:number}>({age:60}, {age:70}, {age:50});
-	llObj.sortKey("age", true);
-	I.test('sortKey_Object_reversed', llObj.items, [{"age":70},{"age":60},{"age":50}]);
+	const llObj = new I.StaticList<{id: number, age:number}>({id: 2, age:60}, {id: 1, age:60}, {id: 3, age:70});
+	llObj.linq((linq) => {
+		return linq.orderBy(w => w.id).orderByDescending(w => w.age)
+	})
+	I.test('sortKey_Object_reversed', llObj.items, [{"id": 3,"age":70},{"id": 1,"age":60},{"id": 2,"age":60}]);
+	
 	
 	//#endregion
 	
