@@ -203,94 +203,40 @@ export class Node<T> {
 	next: Node<T> = null;
 	constructor(public data: T) {}
 }
-export class StaticList<T> {
-	private _head: Node<T> = null;
-	get head() { return this._head }
+export class StaticList<T> { //TODO update comments of every method
+	private _items: T[];
+	get items() { return this._items }
 
-	//#region array
-	private _array: Node<T>[];
-	get array() {return isNull(this._array) ? this.buildArray() : this._array }
-	set array(arr: Node<T>[]) {
-		this._array = [...arr];
-		for (let i = 0; i < arr.length; i++) {
-			this.pairNodes(coalesce(this._array[i-1]), this._array[i])
-		}
-		if (!isNull(arrLast(this._array))) arrLast(this._array).next = null;
-		this._head = coalesce(arr[0]);
-	}
-	//#endregion
+	get length() { return this._items.length }
 
-	//#region data
-	get data() { return coalesce(arrPivot(this.array).data) }
-	set data(data: T[]) {
-		const newArr: Node<T>[] = [];
-		data.forEach(item => {
-			newArr.push(new Node(item));
-		});
-		this.array = newArr;
-	}
-	//#endregion
-	
-	get length() { return this.array.length }
-	get tail() { return coalesce(arrLast(this.array)) }
-
-	/**
-	 * Constructs a StaticList with the specified items.
-	 * @param items - The initial items for the list.
-	 */
 	constructor(...items: T[]) {
-		this.data = items;
-	}
-	private pairNodes(prev: Node<T> | null, next: Node<T> | null) {
-		if (prev) prev.next = next ;
-		if (next) next.prev = prev;
-	}
-	private buildArray() {
-		const addToArray = (node: Node<T>) => {
-			this._array.push(node);
-			if (node.next) addToArray(node.next);
-		};
-
-		this._array = [];
-		if (this._head) addToArray(this._head);
-
-		return this._array;
+		this._items = items;
 	}
 	//#region Push
 	/**
 	 * Adds an item to the beginning of the list.
-	 * @param data - The data to be added.
+	 * @param item - The item to be added.
 	 * @returns The new length of the list.
 	 */
-	pushFirst(data: T) { return this.pushAt(0, data) }
+	pushFirst(item: T) { return this.pushAt(0, item) }
 
 	/**
 	 * Adds an item at the specified index in the list.
-	 * @param index - The index at which the data should be added.
-	 * @param data - The data to be added.
+	 * @param index - The index at which the item should be added.
+	 * @param item - The item to be added.
 	 * @returns The new length of the list.
 	 * @throws Throws an error if the index is out of range.
 	 */
-	pushAt(index: number, data: T) {
-		if (index < 0 || index > this.length) throw new Error('Index out of range');
-
-		const node = new Node(data);
-
-		if (index == 0) this._head = node;
-
-		const prevNode = this.array[index-1];
-		const nextNode = this.array[index];
-		this.pairNodes(prevNode, node);
-		this.pairNodes(node, nextNode);
-		this.buildArray();
+	pushAt(index: number, item: T) {
+		this._items.splice(index, 0, item)
 		return this.length;
 	}
 
 	/**
 	 * Adds an item to the end of the list.
-	 * @param data - The data to be added.
+	 * @param item - The item to be added.
 	 */
-	pushLast(data: T) {	this.pushAt(this.length, data) }
+	pushLast(item: T) {	this.pushAt(this.length, item) }
 	//#endregion
 
 	//#region Pop
@@ -306,16 +252,7 @@ export class StaticList<T> {
 	 * @returns The removed node.
 	 * @throws Throws an error if the index is out of range.
 	 */
-	popAt(index: number) {
-		if (index < 0 || index >= this.length) throw new Error('Index out of range');
-
-		if (index == 0) this._head = this.array[1];
-
-		const node = this.array[index];
-		this.pairNodes(node.prev, node.next);
-		this.buildArray();
-		return node;
-	}
+	popAt(index: number) { return this.items.splice(index, 1) }
 
 	/**
 	 * Removes the last item from the list.
@@ -326,49 +263,43 @@ export class StaticList<T> {
 
 	//#region Get
 	/**
-	 * Returns the data of the first node in the list.
+	 * Returns the item of the first node in the list.
 	 */
 	getFirst(){ return this.getAt(0) }
 
 	/**
-	 * Returns the data at the specified index in the list.
-	 * @param index - The index of the desired data.
+	 * Returns the item at the specified index in the list.
+	 * @param index - The index of the desired item.
 	 * @throws Throws an error if the index is out of range.
 	 */
-	getAt(index: number){
-		if (index < 0 || index >= this.length) throw new Error('Index out of range');
-		return this.array[index].data;
-	}
+	getAt(index: number){ return this.items[index]; }
 
 	/**
-	 * Returns the data of the last node in the list.
+	 * Returns the item of the last node in the list.
 	 */
 	getLast(){ return this.getAt(this.length-1) }
 	//#endregion
 
 	//#region Set
 	/**
-	 * Sets the data of the first node in the list.
-	 * @param data - The new data value.
+	 * Sets the item of the first node in the list.
+	 * @param item - The new item value.
 	 */
-	setFirst(data: T){ this.setAt(0, data) }
+	setFirst(item: T){ this.setAt(0, item) }
 
 	/**
-	 * Sets the data at the specified index in the list.
-	 * @param index - The index at which to set the data.
-	 * @param data - The new data value.
+	 * Sets the item at the specified index in the list.
+	 * @param index - The index at which to set the item.
+	 * @param item - The new item value.
 	 * @throws Throws an error if the index is out of range.
 	 */
-	setAt(index: number, data: T){
-		if (index < 0 || index >= this.length) throw new Error('Index out of range');
-		this.array[index].data = data;
-	}
+	setAt(index: number, item: T){ this.items[index] = item; }
 
 	/**
-	 * Sets the data of the last node in the list.
-	 * @param data - The new data value.
+	 * Sets the item of the last node in the list.
+	 * @param item - The new item value.
 	 */
-	setLast(data: T){ this.setAt(this.length-1, data) }
+	setLast(item: T){ this.setAt(this.length-1, item) }
 	//#endregion
 
 	//#region Methods
@@ -377,10 +308,10 @@ export class StaticList<T> {
 	 * @param condition - The condition to match.
 	 * @returns An array of nodes that satisfy the condition.
 	 */
-	find(condition: (data: T) => boolean): Node<T>[] {
-		let toRet: Node<T>[] = [];
-		this.array.forEach(node => {
-			if (condition(node.data)) toRet.push(node);
+	find(condition: (item: T) => boolean): T[] {
+		let toRet: T[] = [];
+		this.items.forEach(item => {
+			if (condition(item)) toRet.push(item);
 		});
 		return toRet;
 	}
@@ -389,14 +320,14 @@ export class StaticList<T> {
 	 * Swaps the positions of two nodes in the list.
 	 * @param index1 - The index of the first node.
 	 * @param index2 - The index of the second node.
-	 * @returns The updated data array.
+	 * @returns The updated item array.
 	 */
 	swap(index1: number, index2: number) {
-		const data1 = this.getAt(index1);
-		const data2 = this.getAt(index2);
-		this.setAt(index1, data2);
-		this.setAt(index2, data1);
-		return this.data;
+		const item1 = this.getAt(index1);
+		const item2 = this.getAt(index2);
+		this.setAt(index1, item2);
+		this.setAt(index2, item1);
+		return this.items;
 	}
 
 	/**
@@ -408,10 +339,10 @@ export class StaticList<T> {
 	sortKey(key?: keyof T, reverse = false) {
 		let sorted: T[];
 		if (!key) {
-			sorted = this.data.sort();
+			sorted = this._items.sort();
 		}
 		else {
-			sorted = this.data.sort((a, b) => {			
+			sorted = this._items.sort((a, b) => {			
 				const valueA = a[key];
 				const valueB = b[key];
 
@@ -422,8 +353,8 @@ export class StaticList<T> {
 			});
 		}
 		if (reverse) sorted.reverse();
-		this.data = sorted;
-		return this.data;
+		this._items = sorted;
+		return this._items;
 	}
 
 	/**
@@ -433,18 +364,18 @@ export class StaticList<T> {
 	 * @returns The updated data array.
 	 */
 	sortCondition(condition: (data: T) => boolean, reverse = false) {
-		const passed: Node<T>[] = [];
-		const failed: Node<T>[] = [];
-		this.array.forEach(node => {
-			if (condition(node.data))
-				passed.push(node);
+		const passed: T[] = [];
+		const failed: T[] = [];
+		this._items.forEach(item => {
+			if (condition(item))
+				passed.push(item);
 			else
-				failed.push(node);
+				failed.push(item);
 		});
 		const sorted = [...passed, ...failed]
 		if (reverse) sorted.reverse();
-		this.array = sorted;
-		return this.data;
+		this._items = sorted;
+		return this._items;
 	}
 
 	/**
@@ -452,10 +383,10 @@ export class StaticList<T> {
 	 * @returns The updated data array.
 	 */
 	reverse() {
-		const toRet = this.array;
+		const toRet = this._items;
 		toRet.reverse();
-		this.array = toRet;
-		return this.data;
+		this._items = toRet;
+		return this._items;
 	}
 	//#endregion
 }
