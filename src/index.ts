@@ -1,5 +1,25 @@
 import Enumerable from "linq";
 
+//#region Custom array methods
+if (!Array.prototype.pushAt) {
+	Array.prototype.pushAt = function<T>(index: number, ...value: T[]) {
+		this.splice(index, 0, ...value);
+		return this.length;
+	};
+}
+if (!Array.prototype.popAt) {
+	Array.prototype.popAt = function(index: number) {
+		return this.splice(index, 1);
+	};
+}
+if (!Array.prototype.last) {
+	Array.prototype.last = function<T>(value?: T) {
+		if (!isNull(value)) this[this.length -1] = value;
+		return this[this.length - 1];
+	}
+}
+//#endregion
+
 //#region Monad
 /**
  * Represents a step in the Monad execution.
@@ -199,172 +219,7 @@ export class Singleton {
 export type Dictionary<KT extends string | number, KV> = { [key in KT]: KV };
 //#endregion
 
-//#region LinkedList
-export class Node<T> {
-	prev: Node<T> = null;
-	next: Node<T> = null;
-	constructor(public data: T) {}
-}
-export class StaticList<T> { //TODO update comments of every method
-	private _items: T[];
-	get items() { return this._items }
-
-	get length() { return this._items.length }
-
-	constructor(...items: T[]) {
-		this._items = items;
-	}
-	//#region Push
-	/**
-	 * Adds an item to the beginning of the list.
-	 * @param item - The item to be added.
-	 * @returns The new length of the list.
-	 */
-	pushFirst(item: T) { return this.pushAt(0, item) }
-
-	/**
-	 * Adds an item at the specified index in the list.
-	 * @param index - The index at which the item should be added.
-	 * @param item - The item to be added.
-	 * @returns The new length of the list.
-	 * @throws Throws an error if the index is out of range.
-	 */
-	pushAt(index: number, item: T) {
-		this._items.splice(index, 0, item)
-		return this.length;
-	}
-
-	/**
-	 * Adds an item to the end of the list.
-	 * @param item - The item to be added.
-	 */
-	pushLast(item: T) {	this.pushAt(this.length, item) }
-	//#endregion
-
-	//#region Pop
-	/**
-	 * Removes the first item from the list.
-	 * @returns The removed node.
-	 */
-	popFirst() { return this.popAt(0) }
-
-	/**
-	 * Removes the item at the specified index from the list.
-	 * @param index - The index of the item to be removed.
-	 * @returns The removed node.
-	 * @throws Throws an error if the index is out of range.
-	 */
-	popAt(index: number) { return this.items.splice(index, 1) }
-
-	/**
-	 * Removes the last item from the list.
-	 * @returns The removed node.
-	 */
-	popLast() { return this.popAt(this.length-1) }
-	//#endregion
-
-	//#region Get
-	/**
-	 * Returns the item of the first node in the list.
-	 */
-	getFirst(){ return this.getAt(0) }
-
-	/**
-	 * Returns the item at the specified index in the list.
-	 * @param index - The index of the desired item.
-	 * @throws Throws an error if the index is out of range.
-	 */
-	getAt(index: number){ return this.items[index]; }
-
-	/**
-	 * Returns the item of the last node in the list.
-	 */
-	getLast(){ return this.getAt(this.length-1) }
-	//#endregion
-
-	//#region Set
-	/**
-	 * Sets the item of the first node in the list.
-	 * @param item - The new item value.
-	 */
-	setFirst(item: T){ this.setAt(0, item) }
-
-	/**
-	 * Sets the item at the specified index in the list.
-	 * @param index - The index at which to set the item.
-	 * @param item - The new item value.
-	 * @throws Throws an error if the index is out of range.
-	 */
-	setAt(index: number, item: T){ this.items[index] = item; }
-
-	/**
-	 * Sets the item of the last node in the list.
-	 * @param item - The new item value.
-	 */
-	setLast(item: T){ this.setAt(this.length-1, item) }
-	//#endregion
-
-	//#region Methods
-	/**
-	 * Finds nodes in the list based on a condition.
-	 * @param condition - The condition to match.
-	 * @returns An array of nodes that satisfy the condition.
-	 */
-	find(condition: (item: T) => boolean): T[] {
-		let toRet: T[] = [];
-		this.items.forEach(item => {
-			if (condition(item)) toRet.push(item);
-		});
-		return toRet;
-	}
-
-	/**
-	 * Swaps the positions of two nodes in the list.
-	 * @param index1 - The index of the first node.
-	 * @param index2 - The index of the second node.
-	 * @returns The updated item array.
-	 */
-	swap(index1: number, index2: number) {
-		const item1 = this.getAt(index1);
-		const item2 = this.getAt(index2);
-		this.setAt(index1, item2);
-		this.setAt(index2, item1);
-		return this.items;
-	}
-
-	/**
-	 * Sorts the list based on a specified key.
-	 * @param key - The key to use for sorting.
-	 * @param reverse - Indicates whether to sort in reverse order.
-	 * @returns The updated data array.
-	 */
-	
-	linq(linqQuery: (linq: Enumerable.IEnumerable<T>) => Enumerable.IEnumerable<T>) {
-		this._items = linqQuery(Enumerable.from(this._items)).toArray();
-	}
-
-	/**
-	 * Reverses the order of nodes in the list.
-	 * @returns The updated data array.
-	 */
-	reverse() {
-		this._items.reverse();
-		return this._items;
-	}
-	//#endregion
-}
-//#endregion
-
 //#region Arrays and Objects
-/**
- * Gets the last element of an array.
- * @param arr - The array.
- * @returns The last element of the array.
- */
-export function arrLast<T>(arr: Array<T>): T {
-	return arr[arr.length - 1];
-}
-
 /**
  * Edits a specific property of objects in an array using a callback function.
  * @param arr - The array of objects.
@@ -533,8 +388,6 @@ export function coalesce(...values: any[]) {
 
 /**
  * Gets the prototype of the parent object.
- * @param obj - The object.
- * @returns The prototype of the parent object.
  */
 export function parentObj(obj: Object) {
 	return Object.getPrototypeOf(obj.constructor);
