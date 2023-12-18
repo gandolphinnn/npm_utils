@@ -8,7 +8,7 @@
 		"dist"
 	],
 	"scripts": {
-		"watch": "tsc --watch",
+		"live": "concurrently \"tsc --watch\" \"parcel index.html --open\"",
 		"clean": "del /Q /f \"dist\" && tsc && del /Q /f \"dist\\test*\"",
 		"publish": "npm run clean && npm publish"
 	},
@@ -21,5 +21,8 @@
 	"bugs": {
 		"url": "https://github.com/gandolphinnn/npm_utils/issues"
 	},
-	"homepage": "https://github.com/gandolphinnn/npm_utils#readme"
+	"homepage": "https://github.com/gandolphinnn/npm_utils#readme",
+	"dependencies": {
+		"linq": "^4.0.2"
+	}
 }
