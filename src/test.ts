@@ -28,7 +28,7 @@ import * as I from "./index.js";
 	t1 === t2? console.log('Singleton works') : console.log('Singleton fails');
 //#endregion
 
-//#region LinkedList
+//#region Improved Arrays
 	const ll = []
 	//* push
 	ll.pushAt(0, 1);

@@ -271,20 +271,6 @@ export function objPivot<T>(obj: Record<keyof T, Array<T[keyof T]>>): T[] {
 	}
 	return result;
 }
-
-/**
- * Create a new instance of a class with provided params
- * @param classPrototype - The class
- * @param keyValuePairs - An array of keys and values used to assign the class params.
- * @returns A new instance of the class
- */
-export function newWith<T>(classPrototype: {new(...params: any[]): T}, keyValuePairs: Array<[keyof T, any]>): T {
-	const instance = new classPrototype();
-	for (const [key, value] of keyValuePairs) {
-		instance[key] = value;
-	}
-	return instance;
-}
 //#endregion
 
 //#region Math
@@ -311,39 +297,43 @@ export function rand0(max: number) {
  
 /**
  * Clamps a value within the specified minimum and maximum range.
- * @param val - The value to be clamped.
+ * @param val - The value to be clamped. null values will return nulls.
  * @param min - The minimum value of the range.
  * @param max - The maximum value of the range.
  * @returns The clamped value within the range [min, max] (inclusive).
  */
 export function clamp(val: number, min: number, max: number) {
+	if (min > max) throw new Error('MIN can\'t be greater than MAX');
+	if (isNull(val)) return val;
+
 	return Math.max(Math.min(val, max), min);
 }
 
 /**
  * Applies overflow to a value within a specified range.
- * @param val - The value to be overflowed.
+ * @param val - The value to be overflowed. null values will return nulls.
  * @param min - The minimum value of the range.
  * @param max - The maximum value of the range.
  * @returns The overflowed value within the range [min, max] (inclusive). Loops under and over the range.
  */
 export function overflow(val: number, min: number, max: number) {
-	if (min > max)
-		throw new Error('MIN can\'t be greater than MAX');
+	if (min > max) throw new Error('MIN can\'t be greater than MAX');
+	if (isNull(val)) return val;
 
 	const range = max - min + 1;
 	return (val % range + range) % range + min;
 }
 
 /**
- * Applies overflow to a value within a specified range.
- * @param val - The value to be overflowed.
- * @returns The overflowed value within the range [min, max] (inclusive). Loops under and over the range.
+ * Convert to hexadecimal
  */
 export function decToHex(dec: number) {
 	return dec.toString(16);
 }
 
+/**
+ * Convert to decimal
+ */
 export function hexToDec(hex: string) {
 	return parseInt(hex, 16);
 }
@@ -374,9 +364,7 @@ export function areNull(...values: any[]) {
 }
 
 /**
- * Returns the first non-null and non-NaN value from a list of values.
- * @param values - The list of values.
- * @returns The first non-null and non-NaN value, or null if all values are null or NaN.
+ * Returns the first non-null value from a list of values, or null if all values are null.
  */
 export function coalesce(...values: any[]) {
 	for (let i = 0; i < values.length; i++) {
@@ -389,31 +377,44 @@ export function coalesce(...values: any[]) {
 /**
  * Gets the prototype of the parent object.
  */
-export function parentObj(obj: Object) {
-	return Object.getPrototypeOf(obj.constructor);
+export function parentName(obj: Object) {
+	return Object.getPrototypeOf(obj.constructor).name;
 }
 
 /**
- * Generates a plural or singular string based on the provided count.
- * @param val - The count.
+ * Generates a plural or singular string based on the provided amount.
+ * @param val - The amount.
+ * @param pluralString - The plural string. Defaults to 's'.
+ * @param singularString - The singular string. Defaults to an empty string.
+ * @returns The plural or singular string based on the amount.
+ */
+export function plural(val: number, pluralString: string = 's', singularString: string = '') {
+	return val == 1? singularString : pluralString;
+}
+
+/**
+ * Compare a generated value with an expected value and log the result to the console;
+ * @param testName - The test name to display.
  * @param pluralString - The plural string. Defaults to 's'.
  * @param singularString - The singular string. Defaults to an empty string.
  * @returns The plural or singular string based on the count.
  */
-export function plural(val: number, pluralString: string = 's', singularString: string = '') {
-	if (val == 1) {
-		return singularString;
-	}
-	return pluralString;
-}
-export function test(operationName: string, value: any, expected: any) {
+export function test(testName: string, value: any, expected: any) {
 	const valStr = JSON.stringify(value);
 	const excpStr = JSON.stringify(expected)
 	if (valStr == excpStr) {
-		console.log('%cTest ' + operationName + ' passed: ' + valStr, 'color: #0c0');
+		styleLog('color: #0c0', 'Test ', testName, ' passed: ', valStr);
 	}
 	else {
-		console.log('%cTest ' + operationName + ' failed: VALUE=' + valStr + ' EXCPECTED=' + excpStr, 'color: #f00')
+		styleLog('color: #f00', 'Test ', testName, ' failed: VALUE=', valStr, '; EXCPECTED=', excpStr);
 	}
+}
+
+/**
+ * Apply some css styles to the console log
+ * @example 'color: black; background-color: white', 'testo ', 1
+ */
+export function styleLog(style: string, ...text: any[]) {
+	console.log('%c'+ text.join(''), style);
 }
 //#endregion
