@@ -1,6 +1,6 @@
 {
 	"name": "@gandolphinnn/utils",
-	"version": "3.0.1",
+	"version": "3.0.2",
 	"description": "Utils",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
