@@ -1,4 +1,3 @@
-import Enumerable from "linq";
 import * as I from "./index.js";
 
 //#region Monad
