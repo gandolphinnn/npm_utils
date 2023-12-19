@@ -1,4 +1,5 @@
 export type Dictionary<TKey extends string | number, TValue> = { [key in TKey]: TValue };
+export * from "./array.js";
 
 //#region Custom array methods
 if (!Array.prototype.pushAt) {
