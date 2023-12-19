@@ -1,4 +1,4 @@
-import Enumerable from "linq";
+export type Dictionary<TKey extends string | number, TValue> = { [key in TKey]: TValue };
 
 //#region Custom array methods
 if (!Array.prototype.pushAt) {
@@ -213,10 +213,6 @@ export class Singleton {
 	 */
 	protected constructor() {}
 }
-//#endregion
-
-//#region Dictionary
-export type Dictionary<KT extends string | number, KV> = { [key in KT]: KV };
 //#endregion
 
 //#region Arrays and Objects
