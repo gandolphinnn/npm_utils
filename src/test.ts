@@ -14,17 +14,25 @@ import * as I from "./index.js";
 //#endregion
 
 //#region Singleton
-	class Test extends I.Singleton {
-		static get instance() { return this.singletonInstance as Test }
+	class SingletonChild extends I.Singleton {
+		static get instance() { return this.singletonInstance as SingletonChild }
 		private constructor() {
 			super();
 			this.value = null
 		}
 		value: number;
 	}
-	const t1 = Test.instance;
-	const t2 = Test.instance;
-	t1 === t2? console.log('Singleton works') : console.log('Singleton fails');
+	const singleton1 = SingletonChild.instance;
+	const singleton2 = SingletonChild.instance;
+	I.test('Singleton', singleton1 === singleton2, true)
+//#endregion
+
+//#region Miscell
+	console.log(I.parentClass(singleton1));
+	console.log(I.parentClass(m));
+
+	console.log(I.className(singleton1));
+	console.log(I.className(m));
 //#endregion
 
 //#region Improved Arrays

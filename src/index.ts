@@ -371,10 +371,18 @@ export function coalesce(...values: any[]) {
 }
 
 /**
- * Gets the prototype of the parent object.
+ * Returns the prototype of the parent object.
+ * @example To get the parent name, append ".name"
  */
-export function parentName(obj: Object) {
-	return Object.getPrototypeOf(obj.constructor).name;
+export function parentClass(obj: Object) {
+	return Object.getPrototypeOf(obj.constructor);
+}
+/**
+ * Returns the name of the class's prototype
+ * @obj A class, NOT A PROTOTYPE
+ */
+export function className(obj: Object) {
+	return obj.constructor.name
 }
 
 /**
@@ -390,10 +398,7 @@ export function plural(val: number, pluralString: string = 's', singularString: 
 
 /**
  * Compare a generated value with an expected value and log the result to the console;
- * @param testName - The test name to display.
- * @param pluralString - The plural string. Defaults to 's'.
- * @param singularString - The singular string. Defaults to an empty string.
- * @returns The plural or singular string based on the count.
+ * @param testName - The test name to display in the console.
  */
 export function test(testName: string, value: any, expected: any) {
 	const valStr = JSON.stringify(value);
