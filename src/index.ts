@@ -1,3 +1,25 @@
+export * from "./array.js";
+
+//#region Custom array methods
+if (!Array.prototype.pushAt) {
+	Array.prototype.pushAt = function<T>(index: number, ...value: T[]) {
+		this.splice(index, 0, ...value);
+		return this.length;
+	};
+}
+if (!Array.prototype.popAt) {
+	Array.prototype.popAt = function(index: number) {
+		return this.splice(index, 1);
+	};
+}
+if (!Array.prototype.last) {
+	Array.prototype.last = function<T>(value?: T) {
+		if (!isNull(value)) this[this.length -1] = value;
+		return this[this.length - 1];
+	}
+}
+//#endregion
+
 //#region Monad
 /**
  * Represents a step in the Monad execution.
@@ -193,280 +215,7 @@ export class Singleton {
 }
 //#endregion
 
-//#region LinkedList
-export class Node<T> {
-	prev: Node<T> = null;
-	next: Node<T> = null;
-	constructor(public data: T) {}
-}
-export class StaticList<T> {
-	private _head: Node<T> = null;
-	get head() { return this._head }
-
-	//#region array
-	private _array: Node<T>[];
-	get array() {return isNull(this._array) ? this.buildArray() : this._array }
-	set array(arr: Node<T>[]) {
-		this._array = [...arr];
-		for (let i = 0; i < arr.length; i++) {
-			this.pairNodes(coalesce(this._array[i-1]), this._array[i])
-		}
-		if (!isNull(arrLast(this._array))) arrLast(this._array).next = null;
-		this._head = coalesce(arr[0]);
-	}
-	//#endregion
-
-	//#region data
-	get data() { return coalesce(arrPivot(this.array).data) }
-	set data(data: T[]) {
-		const newArr: Node<T>[] = [];
-		data.forEach(item => {
-			newArr.push(new Node(item));
-		});
-		this.array = newArr;
-	}
-	//#endregion
-	
-	get length() { return this.array.length }
-	get tail() { return coalesce(arrLast(this.array)) }
-
-	/**
-	 * Constructs a StaticList with the specified items.
-	 * @param items - The initial items for the list.
-	 */
-	constructor(...items: T[]) {
-		this.data = items;
-	}
-	private pairNodes(prev: Node<T> | null, next: Node<T> | null) {
-		if (prev) prev.next = next ;
-		if (next) next.prev = prev;
-	}
-	private buildArray() {
-		const addToArray = (node: Node<T>) => {
-			this._array.push(node);
-			if (node.next) addToArray(node.next);
-		};
-
-		this._array = [];
-		if (this._head) addToArray(this._head);
-
-		return this._array;
-	}
-	//#region Push
-	/**
-	 * Adds an item to the beginning of the list.
-	 * @param data - The data to be added.
-	 * @returns The new length of the list.
-	 */
-	pushFirst(data: T) { return this.pushAt(0, data) }
-
-	/**
-	 * Adds an item at the specified index in the list.
-	 * @param index - The index at which the data should be added.
-	 * @param data - The data to be added.
-	 * @returns The new length of the list.
-	 * @throws Throws an error if the index is out of range.
-	 */
-	pushAt(index: number, data: T) {
-		if (index < 0 || index > this.length) throw new Error('Index out of range');
-
-		const node = new Node(data);
-
-		if (index == 0) this._head = node;
-
-		const prevNode = this.array[index-1];
-		const nextNode = this.array[index];
-		this.pairNodes(prevNode, node);
-		this.pairNodes(node, nextNode);
-		this.buildArray();
-		return this.length;
-	}
-
-	/**
-	 * Adds an item to the end of the list.
-	 * @param data - The data to be added.
-	 */
-	pushLast(data: T) {	this.pushAt(this.length, data) }
-	//#endregion
-
-	//#region Pop
-	/**
-	 * Removes the first item from the list.
-	 * @returns The removed node.
-	 */
-	popFirst() { return this.popAt(0) }
-
-	/**
-	 * Removes the item at the specified index from the list.
-	 * @param index - The index of the item to be removed.
-	 * @returns The removed node.
-	 * @throws Throws an error if the index is out of range.
-	 */
-	popAt(index: number) {
-		if (index < 0 || index >= this.length) throw new Error('Index out of range');
-
-		if (index == 0) this._head = this.array[1];
-
-		const node = this.array[index];
-		this.pairNodes(node.prev, node.next);
-		this.buildArray();
-		return node;
-	}
-
-	/**
-	 * Removes the last item from the list.
-	 * @returns The removed node.
-	 */
-	popLast() { return this.popAt(this.length-1) }
-	//#endregion
-
-	//#region Get
-	/**
-	 * Returns the data of the first node in the list.
-	 */
-	getFirst(){ return this.getAt(0) }
-
-	/**
-	 * Returns the data at the specified index in the list.
-	 * @param index - The index of the desired data.
-	 * @throws Throws an error if the index is out of range.
-	 */
-	getAt(index: number){
-		if (index < 0 || index >= this.length) throw new Error('Index out of range');
-		return this.array[index].data;
-	}
-
-	/**
-	 * Returns the data of the last node in the list.
-	 */
-	getLast(){ return this.getAt(this.length-1) }
-	//#endregion
-
-	//#region Set
-	/**
-	 * Sets the data of the first node in the list.
-	 * @param data - The new data value.
-	 */
-	setFirst(data: T){ this.setAt(0, data) }
-
-	/**
-	 * Sets the data at the specified index in the list.
-	 * @param index - The index at which to set the data.
-	 * @param data - The new data value.
-	 * @throws Throws an error if the index is out of range.
-	 */
-	setAt(index: number, data: T){
-		if (index < 0 || index >= this.length) throw new Error('Index out of range');
-		this.array[index].data = data;
-	}
-
-	/**
-	 * Sets the data of the last node in the list.
-	 * @param data - The new data value.
-	 */
-	setLast(data: T){ this.setAt(this.length-1, data) }
-	//#endregion
-
-	//#region Methods
-	/**
-	 * Finds nodes in the list based on a condition.
-	 * @param condition - The condition to match.
-	 * @returns An array of nodes that satisfy the condition.
-	 */
-	find(condition: (data: T) => boolean): Node<T>[] {
-		let toRet: Node<T>[] = [];
-		this.array.forEach(node => {
-			if (condition(node.data)) toRet.push(node);
-		});
-		return toRet;
-	}
-
-	/**
-	 * Swaps the positions of two nodes in the list.
-	 * @param index1 - The index of the first node.
-	 * @param index2 - The index of the second node.
-	 * @returns The updated data array.
-	 */
-	swap(index1: number, index2: number) {
-		const data1 = this.getAt(index1);
-		const data2 = this.getAt(index2);
-		this.setAt(index1, data2);
-		this.setAt(index2, data1);
-		return this.data;
-	}
-
-	/**
-	 * Sorts the list based on a specified key.
-	 * @param key - The key to use for sorting.
-	 * @param reverse - Indicates whether to sort in reverse order.
-	 * @returns The updated data array.
-	 */
-	sortKey(key?: keyof T, reverse = false) {
-		let sorted: T[];
-		if (!key) {
-			sorted = this.data.sort();
-		}
-		else {
-			sorted = this.data.sort((a, b) => {			
-				const valueA = a[key];
-				const valueB = b[key];
-
-				// Customize the sorting logic based on the key
-				if (valueA < valueB)		return -1;
-				else if (valueA > valueB)	return 1;
-				else						return 0;
-			});
-		}
-		if (reverse) sorted.reverse();
-		this.data = sorted;
-		return this.data;
-	}
-
-	/**
-	 * Sorts the list based on a specified condition.
-	 * @param condition - The condition to use for sorting.
-	 * @param reverse - Indicates whether to sort in reverse order.
-	 * @returns The updated data array.
-	 */
-	sortCondition(condition: (data: T) => boolean, reverse = false) {
-		const passed: Node<T>[] = [];
-		const failed: Node<T>[] = [];
-		this.array.forEach(node => {
-			if (condition(node.data))
-				passed.push(node);
-			else
-				failed.push(node);
-		});
-		const sorted = [...passed, ...failed]
-		if (reverse) sorted.reverse();
-		this.array = sorted;
-		return this.data;
-	}
-
-	/**
-	 * Reverses the order of nodes in the list.
-	 * @returns The updated data array.
-	 */
-	reverse() {
-		const toRet = this.array;
-		toRet.reverse();
-		this.array = toRet;
-		return this.data;
-	}
-	//#endregion
-}
-//#endregion
-
 //#region Arrays and Objects
-/**
- * Gets the last element of an array.
- * @param arr - The array.
- * @returns The last element of the array.
- */
-export function arrLast<T>(arr: Array<T>): T {
-	return arr[arr.length - 1];
-}
-
 /**
  * Edits a specific property of objects in an array using a callback function.
  * @param arr - The array of objects.
@@ -518,20 +267,6 @@ export function objPivot<T>(obj: Record<keyof T, Array<T[keyof T]>>): T[] {
 	}
 	return result;
 }
-
-/**
- * Create a new instance of a class with provided params
- * @param classPrototype - The class
- * @param keyValuePairs - An array of keys and values used to assign the class params.
- * @returns A new instance of the class
- */
-export function newWith<T>(classPrototype: {new(...params: any[]): T}, keyValuePairs: Array<[keyof T, any]>): T {
-	const instance = new classPrototype();
-	for (const [key, value] of keyValuePairs) {
-		instance[key] = value;
-	}
-	return instance;
-}
 //#endregion
 
 //#region Math
@@ -558,28 +293,45 @@ export function rand0(max: number) {
  
 /**
  * Clamps a value within the specified minimum and maximum range.
- * @param val - The value to be clamped.
+ * @param val - The value to be clamped. null values will return nulls.
  * @param min - The minimum value of the range.
  * @param max - The maximum value of the range.
  * @returns The clamped value within the range [min, max] (inclusive).
  */
 export function clamp(val: number, min: number, max: number) {
+	if (min > max) throw new Error('MIN can\'t be greater than MAX');
+	if (isNull(val)) return val;
+
 	return Math.max(Math.min(val, max), min);
 }
 
 /**
  * Applies overflow to a value within a specified range.
- * @param val - The value to be overflowed.
+ * @param val - The value to be overflowed. null values will return nulls.
  * @param min - The minimum value of the range.
  * @param max - The maximum value of the range.
  * @returns The overflowed value within the range [min, max] (inclusive). Loops under and over the range.
  */
 export function overflow(val: number, min: number, max: number) {
-	if (min > max)
-		throw new Error('MIN can\'t be greater than MAX');
+	if (min > max) throw new Error('MIN can\'t be greater than MAX');
+	if (isNull(val)) return val;
 
 	const range = max - min + 1;
 	return (val % range + range) % range + min;
+}
+
+/**
+ * Convert to hexadecimal
+ */
+export function decToHex(dec: number) {
+	return dec.toString(16);
+}
+
+/**
+ * Convert to decimal
+ */
+export function hexToDec(hex: string) {
+	return parseInt(hex, 16);
 }
 //#endregion
 
@@ -608,9 +360,7 @@ export function areNull(...values: any[]) {
 }
 
 /**
- * Returns the first non-null and non-NaN value from a list of values.
- * @param values - The list of values.
- * @returns The first non-null and non-NaN value, or null if all values are null or NaN.
+ * Returns the first non-null value from a list of values, or null if all values are null.
  */
 export function coalesce(...values: any[]) {
 	for (let i = 0; i < values.length; i++) {
@@ -621,35 +371,51 @@ export function coalesce(...values: any[]) {
 }
 
 /**
- * Gets the prototype of the parent object.
- * @param obj - The object.
- * @returns The prototype of the parent object.
+ * Returns the prototype of the parent object.
+ * @example To get the parent name, append ".name"
  */
-export function parentObj(obj: Object) {
+export function parentClass(obj: Object) {
 	return Object.getPrototypeOf(obj.constructor);
+}
+/**
+ * Returns the name of the class's prototype
+ * @obj A class, NOT A PROTOTYPE
+ */
+export function className(obj: Object) {
+	return obj.constructor.name
 }
 
 /**
- * Generates a plural or singular string based on the provided count.
- * @param val - The count.
+ * Generates a plural or singular string based on the provided amount.
+ * @param val - The amount.
  * @param pluralString - The plural string. Defaults to 's'.
  * @param singularString - The singular string. Defaults to an empty string.
- * @returns The plural or singular string based on the count.
+ * @returns The plural or singular string based on the amount.
  */
 export function plural(val: number, pluralString: string = 's', singularString: string = '') {
-	if (val == 1) {
-		return singularString;
-	}
-	return pluralString;
+	return val == 1? singularString : pluralString;
 }
-export function test(operationName: string, value: any, expected: any) {
+
+/**
+ * Compare a generated value with an expected value and log the result to the console;
+ * @param testName - The test name to display in the console.
+ */
+export function test(testName: string, value: any, expected: any) {
 	const valStr = JSON.stringify(value);
 	const excpStr = JSON.stringify(expected)
 	if (valStr == excpStr) {
-		console.log(operationName, 'passed: ', valStr);
+		styleLog('color: #0c0', 'Test ', testName, ' passed: ', valStr);
 	}
 	else {
-		console.warn(operationName, 'failed: VALUE=', valStr, ' EXCPECTED=', excpStr)
+		styleLog('color: #f00', 'Test ', testName, ' failed: VALUE=', valStr, '; EXCPECTED=', excpStr);
 	}
+}
+
+/**
+ * Apply some css styles to the console log
+ * @example 'color: black; background-color: white', 'testo ', 1
+ */
+export function styleLog(style: string, ...text: any[]) {
+	console.log('%c'+ text.join(''), style);
 }
 //#endregion
