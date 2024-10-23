@@ -114,7 +114,7 @@ export class Monad {
 	}
 
 	/**
-	 * Sets the condition function for determining followind steps failure.
+	 * Sets the condition function for determining following steps failure.
 	 * @param func - The condition function.
 	 * @returns This
 	 */
