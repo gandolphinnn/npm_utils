@@ -1,4 +1,4 @@
-import * as I from "./index.js";
+import * as I from '../lib/index';
 
 //#region Monad
 	const m = new I.Monad(12) //12

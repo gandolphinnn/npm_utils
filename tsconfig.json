@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"target": "ES2015",
 		"sourceMap": true,
-		"rootDir": "src",
+		"rootDir": "app",
 		"outDir": "dist",
 		"declaration": true,
 		"moduleResolution": "Node",
@@ -11,6 +11,6 @@
 			"*": ["node_modules"]
 		}
 	},
-	"include": ["src"],
+	"include": ["app"],
 	"exclude": ["node_modules", "dist"]
 }
